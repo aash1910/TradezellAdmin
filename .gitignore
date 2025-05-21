@@ -1,0 +1,16 @@
+/vendor
+/node_modules
+/public/storage
+/public/assets/video
+/storage/backups
+/public/uploads/images/
+Homestead.yaml
+Homestead.json
+.env 
+.idea
+.DS_Store
+.packages
+.quarantine
+.tmb
+/vendor7.6
+/all_backup

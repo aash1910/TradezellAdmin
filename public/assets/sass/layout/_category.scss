@@ -1,0 +1,40 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Category CSS
+----------------------------------------*/
+.haor-categories {
+	border-top: 1px solid var(--ss-color-border-1);
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+.categories {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	@include flexbox();
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 20px;
+
+	li {
+		a {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			text-transform: uppercase;
+			letter-spacing: 0.32px;
+			border: 1px solid var(--ss-color-border-1);
+			border-radius: 50px;
+			padding: 5px 25px;
+
+			&:hover {
+				border-color: var(--ss-color-theme-primary);
+				color: var(--ss-color-theme-primary);
+			}
+		}
+	}
+}
+/* !END: Category CSS */

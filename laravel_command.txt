@@ -1,0 +1,66 @@
+sudo /Applications/XAMPP/xamppfiles/bin/mysql.server start
+
+cd /Applications/XAMPP/xamppfiles/htdocs/pos 
+
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php -r "if (hash_file('sha384', 'composer-setup.php') === 'c5b9b6d368201a9db6f74e2611495f369991b72d9c8cbd3ffbc63edff210eb73d46ffbfce88669ad33695ef77dc76976') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+
+composer create-project --prefer-dist laravel/laravel pos
+sudo chmod -R 0777 /Applications/XAMPP/xamppfiles/htdocs/pos/storage/logs
+
+
+npm install -g npm
+npm update
+php artisan make:auth
+
+composer require laravel/ui --dev
+php artisan ui bootstrap --auth
+php artisan ui vue --auth
+npm install vue-router vue-axios --save
+npm install
+npm run dev
+
+
+php artisan make:model Post -m
+
+php artisan migrate
+php artisan make:migration add_extra_field_to_users_table
+composer dump-autoload
+php artisan migrate:refresh --seed
+
+php artisan db:seed
+php artisan db:seed --class=UsersTableSeeder
+
+php artisan make:controller PostsController --resource
+php artisan make:controller PostsController
+php artisan make:resource PostsCollection
+
+php artisan make:seeder UsersTableSeeder
+
+php artisan passport:install --force
+
+sudo chmod -R o+rw bootstrap/cache
+sudo chmod -R o+rw storage
+
+which php
+sudo nano ~/.bash_profile
+
+// NEW CRUD in LARAVEL BACKBACK
+php artisan make:migration:schema create_tags_table
+php artisan migrate
+php artisan backpack:crud package
+
+# Use the full path to PHP 7.4.33 in MAMP every time:
+/Applications/MAMP/bin/php/php7.4.33/bin/php -v
+
+# To run a command (e.g. artisan):
+/Applications/MAMP/bin/php/php7.4.33/bin/php artisan serve
+like 
+create new migration:
+/Applications/MAMP/bin/php/php7.4.33/bin/php artisan make:migration create_permission_tables
+run migration:
+/Applications/MAMP/bin/php/php7.4.33/bin/php artisan migrate 
+run specific migration:
+/Applications/MAMP/bin/php/php7.4.33/bin/php artisan migrate --path=/database/migrations/2025_05_21_091908_create_packages_table.php

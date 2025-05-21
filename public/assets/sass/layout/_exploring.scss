@@ -1,0 +1,135 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Exploring CSS
+----------------------------------------*/
+.exploring-section {
+	padding-top: 110px;
+
+	.section_title {
+		max-width: 896px;
+		width: 100%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	@media #{$xs, $sm} {
+		padding-top: 60px;
+	}
+}
+
+.grid .gutter-sizer {
+	width: 1%;
+}
+.grid {
+	.grid-item {
+		width: 30%;
+		height: 502px;
+		background: var(--ss-color-grey-1);
+		margin-bottom: 1%;
+
+		&.grid-item--width2 {
+			width: 38%;
+		}
+		&.grid-item--width3 {
+			width: 49.5%;
+		}
+
+		@media #{$lg} {
+			height: 450px;
+		}
+		@media #{$md} {
+			height: 350px;
+		}
+		@media #{$xs, $sm} {
+			width: 100%;
+			height: 350px;
+			margin-bottom: 20px;
+
+			&.grid-item--width2 {
+				width: 100%;
+			}
+			&.grid-item--width3 {
+				width: 100%;
+			}
+		}
+	}
+}
+.explore_card {
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+
+	&_inner {
+		display: block;
+		position: relative;
+		z-index: 1;
+		height: 100%;
+
+		&::after {
+			content: "";
+			position: absolute;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			height: 185px;
+			background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 100%);
+			z-index: 1;
+			@include transition(height 1s ease);
+		}
+
+		&:hover {
+			&::after {
+				height: 100%;
+			}
+
+			.explore_card_img {
+				@include transform(scale(1.15));
+			}
+
+			.explore_card_content {
+				.title {
+					color: var(--ss-color-theme-primary);
+				}
+			}
+		}
+	}
+
+	&_img {
+		height: 100%;
+		@include transition(all 2s ease);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	&_content {
+		max-width: 250px;
+		width: 100%;
+		position: absolute;
+		left: 30px;
+		bottom: 30px;
+		z-index: 2;
+
+		.title {
+			margin-bottom: 0;
+			color: var(--ss-color-common-white);
+		}
+
+		.info {
+			margin-top: 5px;
+			margin-bottom: 0;
+			font-size: 16px;
+			line-height: 1;
+			color: var(--ss-color-common-white);
+		}
+
+		@media #{$xs, $sm} {
+			left: 20px;
+		}
+	}
+}
+/* !END: Exploring CSS */

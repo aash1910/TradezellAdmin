@@ -1,0 +1,86 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Statistics CSS
+----------------------------------------*/
+.statistics_section {
+	padding-top: 50px;
+	padding-bottom: 90px;
+
+	.statistic_wrap_heading {
+		margin-bottom: 40px;
+
+		.title {
+			text-transform: uppercase;
+			font-weight: var(--ss-fw-medium);
+			font-family: var(--ss-ff-body);
+			color: var(--ss-color-text-body);
+		}
+	}
+
+	@media #{$xs, $sm} {
+		padding-top: 40px;
+		padding-bottom: 45px;
+	}
+}
+
+.statistics_info {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	z-index: 1;
+
+	&::before {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 120%;
+		height: 1px;
+		background-color: var(--ss-color-border-1);
+		z-index: -1;
+	}
+
+	&_item {
+		padding: 15px;
+		background-color: var(--ss-color-common-white);
+		&_inner {
+			width: 185px;
+			height: 185px;
+			border: 1px dashed var(--ss-color-border-1);
+			border-radius: 50%;
+			display: inline-flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+
+			.title {
+				margin-bottom: 6px;
+			}
+			.stat {
+				display: inline-block;
+				text-transform: uppercase;
+			}
+		}
+	}
+
+	@media #{$xs, $sm} {
+		&::before {
+			top: 0;
+			transform: translateX(-50%);
+			height: 100%;
+			width: 1px;
+		}
+		.statistics_info_item {
+			padding: 15px 0;
+
+			&:not(:last-child) {
+				margin-bottom: 30px;
+			}
+		}
+	}
+}
+/* !END: Statistics CSS */

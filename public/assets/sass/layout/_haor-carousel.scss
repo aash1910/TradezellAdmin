@@ -1,0 +1,137 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Haor Carousel CSS
+----------------------------------------*/
+.haors-of-districts {
+	padding-top: 150px;
+	padding-bottom: 100px;
+
+	@media #{$xs, $sm} {
+		padding-top: 60px;
+		padding-bottom: 20px;
+	}
+}
+
+.haors_of_districts_wrap {
+	.single_district {
+		position: relative;
+		z-index: 1;
+		margin-bottom: 50px;
+
+		.district_name {
+			margin-bottom: 30px;
+			display: inline-block;
+			padding-right: 15px;
+			background-color: var(--ss-color-common-white);
+
+			&::after {
+				content: "";
+				position: absolute;
+				left: 0;
+				top: 28px;
+				width: 100%;
+				height: 1px;
+				background-color: var(--ss-color-border-1);
+				z-index: -1;
+			}
+		}
+
+		.haors_carousel {
+			.singele_haor {
+				display: inline-block;
+				width: 100%;
+
+				.haor_image {
+					display: block;
+					overflow: hidden;
+					max-width: 315px;
+					width: 100%;
+					height: 315px;
+					margin-bottom: 20px;
+
+					img {
+						width: 100%;
+						height: 100%;
+						object-fit: cover;
+						@include transition(all 2s ease);
+					}
+				}
+				.haor_content {
+					.name {
+						margin-bottom: 7px;
+					}
+					.area {
+						display: inline-block;
+						letter-spacing: -0.16px;
+					}
+				}
+
+				&:hover {
+					.haor_image {
+						img {
+							transform: scale(1.12);
+						}
+					}
+					.haor_content {
+						.name {
+							color: var(--ss-color-theme-primary);
+						}
+					}
+				}
+			}
+
+			.owl-nav {
+				button {
+					width: 60px;
+					height: 60px;
+					background-color: var(--ss-color-common-white);
+					border: 1px solid #e2e2e2;
+					border-radius: 50%;
+					font-size: 20px;
+					color: #b0b0b0;
+					display: inline-block;
+					align-items: center;
+					justify-content: center;
+					position: absolute;
+					left: -30px;
+					top: 40%;
+					transform: translateY(-50%);
+					z-index: 2;
+
+					&.owl-next {
+						left: auto;
+						right: -30px;
+					}
+				}
+			}
+		}
+
+		@media #{$xs} {
+			.district_name {
+				&::after {
+					top: 20px;
+				}
+			}
+
+			.haors_carousel {
+				.singele_haor {
+					.haor_image {
+						max-width: 100%;
+					}
+				}
+
+				.owl-nav {
+					button {
+						left: 0;
+
+						&.owl-next {
+							right: 0;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+/* !END: Haor Carousel CSS */

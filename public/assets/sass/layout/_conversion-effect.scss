@@ -1,0 +1,169 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Conversion Effect CSS
+----------------------------------------*/
+.conversion-effect-section {
+	padding-top: 130px;
+	padding-bottom: 120px;
+	background-color: var(--ss-color-theme-bg-dark);
+
+	.section_title {
+		margin-bottom: 60px;
+		max-width: 900px;
+		width: 100%;
+		margin-left: auto;
+		margin-right: auto;
+
+		.title {
+			color: var(--ss-color-common-white);
+		}
+		p {
+			color: var(--ss-color-border-1);
+		}
+	}
+
+	@media #{$xs, $sm} {
+		padding-top: 60px;
+		padding-bottom: 60px;
+
+		.section_title {
+			margin-bottom: 40px;
+		}
+	}
+}
+
+.conversion_effects {
+	display: grid;
+	grid-gap: 20px;
+	grid-template-columns: 309px 309px 309px 309px;
+	grid-template-rows: 400px 400px;
+
+	&_item {
+		overflow: hidden;
+
+		&_inner {
+			position: relative;
+			z-index: 2;
+			display: block;
+			height: 100%;
+
+			&::after {
+				content: "";
+				position: absolute;
+				left: 0;
+				bottom: 0;
+				width: 100%;
+				height: 245px;
+				background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000 100%);
+				z-index: 1;
+				@include transition(height 1s ease);
+			}
+		}
+
+		.effect_image {
+			max-height: 400px;
+			height: 100%;
+			@include transition(all 2s ease);
+
+			img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+		.effect_content {
+			position: absolute;
+			left: 0;
+			bottom: 0;
+			z-index: 2;
+			padding: 25px 20px;
+
+			.title {
+				color: var(--ss-color-common-white);
+				margin-bottom: 10px;
+			}
+			p {
+				color: var(--ss-color-common-white);
+				margin-bottom: 0;
+			}
+		}
+
+		&:hover {
+			.conversion_effects_item_inner {
+				&::after {
+					height: 100%;
+				}
+				.effect_image {
+					@include transform(scale(1.15));
+				}
+				.effect_content {
+					.title {
+						color: var(--ss-color-theme-primary);
+					}
+				}
+			}
+		}
+
+		&.item_big {
+			grid-row: 1 / 3;
+			grid-column: 1 / 3;
+
+			.conversion_effects_item_inner {
+				&::after {
+					display: none;
+				}
+				.effect_image {
+					max-height: 100%;
+				}
+				.effect_content {
+					max-width: 490px;
+					width: 100%;
+					padding: 50px 30px 60px 30px;
+					z-index: 1;
+
+					&::after {
+						content: "";
+						position: absolute;
+						left: 0;
+						top: 0;
+						width: 100%;
+						height: 100%;
+						background-color: var(--ss-color-common-black);
+						opacity: 0.8;
+						z-index: -1;
+					}
+				}
+			}
+		}
+	}
+
+	@media #{$xl} {
+		grid-template-columns: 262px 262px 262px 262px;
+		grid-template-rows: 350px 350px;
+	}
+	@media #{$lg} {
+		grid-template-columns: 300px 300px 300px;
+		grid-template-rows: 350px 350px;
+	}
+	@media #{$md} {
+		grid-template-columns: 335px 335px;
+		grid-template-rows: 400px 400px;
+	}
+	@media #{$xs, $sm} {
+		grid-template-columns: 100%;
+		grid-template-rows: 400px;
+		grid-gap: 30px;
+
+		.item_big {
+			grid-column: 1/2;
+
+			.conversion_effects_item_inner {
+				.effect_content {
+					padding: 30px 20px 40px 20px;
+				}
+			}
+		}
+	}
+}
+/* !END: Conversion Effect CSS */

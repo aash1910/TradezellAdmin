@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+   RewriteEngine On 
+   RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# git remote add origin https://TOKEN@github.com/USER_NAME/GITHUB_PROJECT_NAME

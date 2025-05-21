@@ -1,0 +1,103 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Haor Overview CSS
+----------------------------------------*/
+.haor-overview {
+	border-top: 1px solid var(--ss-color-border-1);
+	padding-top: 40px;
+	padding-bottom: 40px;
+}
+.haor_overview_content {
+	.subtitle {
+		font-family: var(--ss-ff-body);
+		font-weight: var(--ss-fw-regular);
+		letter-spacing: 0.4px;
+		color: var(--ss-color-text-body);
+		margin-bottom: 22px;
+	}
+	.desc {
+		font-size: 30px;
+		font-family: var(--ss-ff-heading);
+		font-weight: var(--ss-fw-sbold);
+		color: var(--ss-color-heading-primary);
+
+		p {
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+	}
+
+	.overview_carousel {
+		max-width: 900px;
+		margin: auto;
+		margin-top: 70px;
+
+		&_item,
+		.owl-item {
+			max-height: 430px;
+
+			img {
+				height: 430px;
+				width: 100%;
+				object-fit: cover;
+				object-position: center;
+			}
+		}
+
+		.owl-thumbs {
+			@include flexbox();
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+
+			.owl-thumb-item {
+				max-width: 150px;
+				width: 100%;
+				height: 85px;
+				opacity: 0.5;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+
+				&.active {
+					opacity: 1;
+				}
+			}
+		}
+	}
+
+	@media #{$xs, $sm} {
+		.desc {
+			font-size: 16px;
+		}
+
+		.overview_carousel {
+			margin-top: 50px;
+
+			&_item,
+			.owl-item {
+				max-height: 350px;
+			}
+
+			.owl-thumbs {
+				.owl-thumb-item {
+					height: 50px;
+				}
+			}
+		}
+	}
+}
+
+.effects-page {
+	.haor_overview_content {
+		max-width: 665px;
+		width: 100%;
+		margin: auto;
+	}
+}
+/* !END: Haor Overview CSS */

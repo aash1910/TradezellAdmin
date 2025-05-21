@@ -1,0 +1,40 @@
+// Font URL
+$font-url: "https://fonts.googleapis.com/css2?family=Barlow:wght@100;200;300;400;500;600;700;800;900&family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&display=swap";
+
+//Font Family
+$font-family: (
+	ff: (
+		body: "'Barlow', sans-serif",
+		heading: "'Noto Serif JP', serif",
+		fontawesome: '"Font Awesome 6 Pro"',
+	),
+);
+
+// Font Weight
+$font-scale: (
+	fw: (
+		normal: normal,
+		thin: 100,
+		elight: 200,
+		light: 300,
+		regular: 400,
+		medium: 500,
+		sbold: 600,
+		bold: 700,
+		ebold: 800,
+		black: 900,
+	),
+);
+
+// Font Size
+$font-size: (
+	fs: (
+		body: 16px,
+		h1: 64px,
+		h2: 48px,
+		h3: 38px,
+		h4: 24px,
+		h5: 20px,
+		h6: 18px,
+	),
+);

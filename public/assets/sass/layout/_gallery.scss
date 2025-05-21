@@ -1,0 +1,50 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Gallery CSS
+----------------------------------------*/
+.gallery-section {
+	&_inner {
+		.owl-stage-outer {
+			.owl-stage {
+				display: flex;
+				align-items: center;
+				height: 315px;
+
+				.owl-item {
+					height: 100%;
+					.gallery_img {
+						height: 100%;
+						position: relative;
+						overflow: hidden;
+
+						img {
+							height: 100%;
+							object-fit: cover;
+						}
+					}
+
+					&.active {
+						width: 330px !important;
+						transition: width 0.5s;
+						&.center {
+							width: 675px !important;
+						}
+
+						@media #{$md} {
+							width: 250px !important;
+
+							&.center {
+								width: 500px !important;
+							}
+						}
+						@media #{$xs, $sm} {
+							width: auto !important;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+/* !END: Gallery CSS */

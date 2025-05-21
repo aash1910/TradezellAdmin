@@ -1,0 +1,53 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Report CSS
+----------------------------------------*/
+.report-section {
+	padding-top: 130px;
+	padding-bottom: 80px;
+	background-color: var(--ss-color-theme-bg-light);
+
+	.section_title {
+		.title {
+			max-width: 320px;
+			width: 100%;
+		}
+		p {
+			font-size: 16px;
+		}
+	}
+
+	@media #{$xs, $sm} {
+		padding-top: 60px;
+		padding-bottom: 30px;
+	}
+}
+
+.report {
+	margin-bottom: 30px;
+	&_img {
+		margin-bottom: 25px;
+
+		img {
+			border: 1px solid var(--ss-color-border-1);
+			width: 100%;
+		}
+	}
+
+	&_content {
+		.title {
+			margin-bottom: 2px;
+
+			a {
+				&:hover {
+					color: var(--ss-color-theme-primary);
+				}
+			}
+		}
+		p {
+			margin-bottom: 10px;
+		}
+	}
+}
+/* !END: Report CSS */

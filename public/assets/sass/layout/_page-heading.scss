@@ -1,0 +1,92 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Page Heading CSS
+----------------------------------------*/
+.page-headings {
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	min-height: 550px;
+	display: flex;
+	align-items: center;
+	position: relative;
+	z-index: 1;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 210px;
+		opacity: 0.8;
+		background: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0) 100%);
+		z-index: -1;
+	}
+
+	@media #{$md} {
+		min-height: 500px;
+	}
+	@media #{$xs, $sm} {
+		min-height: 400px;
+	}
+}
+.page_heading_content {
+	.title {
+		color: var(--ss-color-common-white);
+		margin-bottom: 0;
+	}
+
+	.page_heading_info {
+		margin-top: 30px;
+		font-size: 20px;
+		line-height: 1;
+		letter-spacing: 0.4px;
+		color: var(--ss-color-common-white);
+
+		span {
+			display: inline-block;
+
+			&:not(:last-child) {
+				border-right: 1px solid var(--ss-color-common-white);
+				padding-right: 46px;
+				margin-right: 45px;
+			}
+		}
+	}
+
+	@media #{$md} {
+		margin-top: 90px;
+
+		.page_heading_info {
+			margin-top: 20px;
+			font-size: 13px;
+
+			span {
+				&:not(:last-child) {
+					padding-right: 21px;
+					margin-right: 20px;
+					font-size: 15px;
+				}
+			}
+		}
+	}
+	@media #{$xs, $sm} {
+		margin-top: 100px;
+
+		.page_heading_info {
+			margin-top: 20px;
+			font-size: 13px;
+
+			span {
+				&:not(:last-child) {
+					padding-right: 11px;
+					margin-right: 10px;
+					font-size: 13px;
+				}
+			}
+		}
+	}
+}
+/* !END: Page Heading CSS */

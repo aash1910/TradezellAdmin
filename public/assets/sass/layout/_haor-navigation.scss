@@ -1,0 +1,144 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Haor Navigation CSS
+----------------------------------------*/
+.haor_navigation {
+	padding: 55px 0;
+	border-top: 1px solid var(--ss-color-border-1);
+
+	@media #{$xs, $sm} {
+		padding: 60px 0;
+	}
+}
+.haor_navigation_inner {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 50px;
+	justify-content: space-between;
+
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+		top: 0;
+		height: 100%;
+		width: 1px;
+		background-color: var(--ss-color-border-1);
+	}
+
+	.navigation_item {
+		position: relative;
+		max-width: 435px;
+		width: 100%;
+		padding-left: 80px;
+		min-height: 180px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+
+		.label {
+			display: block;
+			font-size: 20px;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+		}
+		.haor_name {
+			margin-bottom: 0;
+		}
+
+		.haor_arrow {
+			position: absolute;
+			left: 0;
+			top: 50%;
+			width: 80px;
+			height: 1px;
+			transform: translateY(-50%);
+			background-color: var(--ss-color-border-1);
+			display: inline-block;
+			z-index: 1;
+
+			&::after {
+				content: "";
+				width: 8px;
+				height: 8px;
+				border-left: 1px solid var(--ss-color-border-1);
+				border-top: 1px solid var(--ss-color-border-1);
+				position: absolute;
+				left: 0;
+				top: -4px;
+				transform: rotate(-45deg);
+				z-index: 2;
+			}
+		}
+
+		&:hover {
+			.haor_name {
+				color: var(--ss-color-theme-primary);
+			}
+		}
+
+		&.previous {
+			text-align: right;
+		}
+		&.next {
+			padding-left: 0;
+			padding-right: 80px;
+
+			.haor_arrow {
+				transform: rotate(180deg);
+				left: auto;
+				right: 0;
+			}
+		}
+	}
+
+	@media #{$md} {
+		.navigation_item {
+			max-width: 320px;
+			padding-left: 40px;
+
+			.haor_arrow {
+				width: 40px;
+			}
+
+			&.next {
+				padding-right: 40px;
+			}
+		}
+	}
+
+	@media #{$xs, $sm} {
+		gap: 60px;
+
+		.navigation_item {
+			max-width: 100%;
+			min-height: auto;
+			padding-left: 40px;
+
+			.label {
+				font-size: 16px;
+			}
+
+			.haor_arrow {
+				width: 40px;
+			}
+
+			&.next {
+				padding-right: 40px;
+			}
+		}
+
+		&::after {
+			left: 0;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 100%;
+			height: 1px;
+		}
+	}
+}
+/* !END: Haor Navigation CSS */

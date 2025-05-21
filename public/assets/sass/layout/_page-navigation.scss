@@ -1,0 +1,48 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Page Navigation CSS
+----------------------------------------*/
+.page-navigation {
+	padding: 20px 0;
+
+	.page_navigations {
+		padding: 0;
+		margin: 0;
+		list-style: none;
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		justify-content: center;
+
+		li {
+			position: relative;
+			text-transform: uppercase;
+			letter-spacing: 0.32px;
+			color: var(--ss-color-heading-primary);
+
+			a {
+				color: var(--ss-color-text-body);
+
+				&:hover {
+					color: var(--ss-color-theme-primary);
+				}
+			}
+
+			&:not(:last-child) {
+				padding-right: 20px;
+				margin-right: 10px;
+
+				&::after {
+					content: ">";
+					position: absolute;
+					right: 0;
+					top: 50%;
+					transform: translateY(-50%);
+					color: var(--ss-color-text-body);
+				}
+			}
+		}
+	}
+}
+/* !END: Page Navigation CSS */

@@ -1,0 +1,49 @@
+@use "../utilities" as *;
+
+/**
+  Buttons CSS
+*/
+.btn {
+	display: inline-block;
+	border: 1px solid var(--ss-color-border-1);
+	border-radius: 0;
+	padding: 14px 65px;
+	background-color: var(--ss-color-common-white);
+	font-weight: var(--ss-fw-medium);
+	font-family: var(--ss-ff-body);
+	text-transform: uppercase;
+	line-height: 1;
+	color: var(--ss-color-text-body);
+
+	&:hover {
+		border-color: var(--ss-color-theme-primary);
+		background-color: var(--ss-color-theme-primary);
+		color: var(--ss-color-common-white);
+	}
+}
+
+.btn-inline {
+	display: inline-flex;
+	align-items: center;
+	font-size: 14px;
+	font-weight: var(--ss-fw-bold);
+	font-family: var(--ss-ff-body);
+	letter-spacing: 0.7px;
+	text-transform: uppercase;
+	color: var(--ss-color-theme-primary);
+
+	i {
+		@include transition(margin 0.3s ease-in-out 0s);
+		color: var(--ss-color-theme-primary);
+		margin-left: 10px;
+	}
+
+	&:hover {
+		color: var(--ss-color-heading-primary);
+
+		i {
+			color: var(--ss-color-heading-primary);
+			margin-left: 20px;
+		}
+	}
+}

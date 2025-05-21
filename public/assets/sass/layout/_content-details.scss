@@ -1,0 +1,73 @@
+@use "../utilities" as *;
+
+/**----------------------------------------
+START: Content Details CSS
+----------------------------------------*/
+.haor-details {
+	border-top: 1px solid var(--ss-color-border-1);
+	padding-top: 65px;
+	padding-bottom: 50px;
+
+	.main-sidebar {
+		@media #{$xs, $sm, $md} {
+			margin-top: 50px;
+		}
+	}
+
+	@media #{$xs, $sm} {
+		padding-top: 60px;
+		padding-bottom: 10px;
+	}
+}
+.details_content {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		margin-bottom: 10px;
+	}
+	figure {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 20px;
+
+		@media #{$xs, $sm, $md, $lg, $xl} {
+			gap: 15px;
+		}
+	}
+	img.image-50 {
+		max-width: 49%;
+
+		@media #{$lg, $xl} {
+			max-width: 48.5%;
+		}
+		@media #{$md} {
+			max-width: 48.5%;
+		}
+		@media #{$xs, $sm} {
+			max-width: 100%;
+			width: 100%;
+		}
+	}
+	figcaption {
+		font-size: 14px;
+		color: var(--ss-color-gray-1);
+		margin-top: 10px;
+	}
+}
+
+.statistics-page {
+	.haor-details {
+		padding-bottom: 110px;
+	}
+}
+.effects-page {
+	.haor-details {
+		padding-bottom: 110px;
+	}
+}
+/* !END: Content Details CSS */
