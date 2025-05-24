@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Order;
-class Package extends Model
+use App\User;
+use App\Models\Package;
+
+class Order extends Model
 {
     use CrudTrait;
 
@@ -15,7 +17,7 @@ class Package extends Model
     |--------------------------------------------------------------------------
     */
 
-    protected $table = 'packages';
+    protected $table = 'orders';
     // protected $primaryKey = 'id';
     // public $timestamps = false;
     protected $guarded = ['id'];
@@ -24,11 +26,9 @@ class Package extends Model
     // protected $dates = [];
 
     protected $fillable = [
-        'sender_id',
-        'pickup_name', 'pickup_mobile', 'pickup_address', 'pickup_details',
-        'weight', 'price', 'pickup_date', 'pickup_time',
-        'drop_name', 'drop_mobile', 'drop_address', 'drop_details',
-        'pickup_lat', 'pickup_lng', 'drop_lat', 'drop_lng'
+        'package_id',
+        'dropper_id',
+        'status',
     ];
 
     /*
@@ -43,19 +43,14 @@ class Package extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function sender()
+    public function package()
     {
-        return $this->belongsTo(\App\User::class, 'sender_id');
+        return $this->belongsTo(Package::class);
     }
 
-    public function order()
+    public function dropper()
     {
-        return $this->hasOne(Order::class);
-    }
-
-    public function getPackageInfoAttribute()
-    {
-        return $this->pickup_name . ' (' . $this->pickup_address . ') - ' . $this->drop_name . ' (' . $this->drop_address . ') - ' . date('d M Y', strtotime($this->pickup_date)) . ' ' . date('H:i', strtotime($this->pickup_time));
+        return $this->belongsTo(User::class, 'dropper_id');
     }
 
     /*
@@ -69,6 +64,10 @@ class Package extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
+    public function getOrderInfoAttribute()
+    {
+        return $this->package->package_info . ' - ' . $this->dropper->full_name . ' - ' . $this->status;
+    }
 
     /*
     |--------------------------------------------------------------------------
