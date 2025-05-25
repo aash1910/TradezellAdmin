@@ -2,19 +2,22 @@
 
 namespace App;
 
-use Alert;
+use Laravel\Sanctum\HasApiTokens;
+use Prologue\Alerts\Facades\Alert;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManagerStatic as Image;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 
 class User extends Authenticatable
 {
     use HasRoles;
     use CrudTrait;
     use Notifiable;
+    use HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -47,7 +50,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'otp', 'otp_expires_at', 'is_verified', 'status', 'email_verified_at'
     ];
 
     public function getFullNameAttribute()
@@ -74,20 +77,20 @@ class User extends Authenticatable
 
         // if the image was erased
         if ($value==null) {
-            \Storage::disk($disk)->delete($this->{$attribute_name});
+            Storage::disk($disk)->delete($this->{$attribute_name});
             $this->attributes[$attribute_name] = null;
         }
 
         if (Str::startsWith($value, 'data:image'))
         {
             $extension = explode('/', mime_content_type($value))[1];
-            $image = \Image::make($value)->encode($extension, 90);
+            $image = Image::make($value)->encode($extension, 90);
             $filename = md5($value.time()).'.'.$extension;
 
-            \Storage::disk($disk)->put($destination_path.'/'.$filename, $image->stream());
+            Storage::disk($disk)->put($destination_path.'/'.$filename, $image->stream());
 
             // 3. Delete the previous image, if there was one.
-            \Storage::disk($disk)->delete($this->{$attribute_name});
+            Storage::disk($disk)->delete($this->{$attribute_name});
 
             $public_destination_path = Str::replaceFirst('public/', '', $destination_path);
             $this->attributes[$attribute_name] = $public_destination_path.'/'.$filename;

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
 use App\Notifications\SendOtpNotification;
+use Illuminate\Support\Facades\Log;
 
 class OtpController extends Controller
 {
@@ -39,7 +40,7 @@ class OtpController extends Controller
 
             return response()->json(['message' => 'OTP verified successfully']);
         } catch (\Exception $e) {
-            \Log::error('OTP Verification Error: ' . $e->getMessage());
+            Log::error('OTP Verification Error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to verify OTP. Please try again.'], 500);
         }
     }
@@ -57,6 +58,13 @@ class OtpController extends Controller
                 return response()->json(['message' => 'User already verified'], 200);
             }
 
+            if ($user->otp_expires_at && now()->lessThan($user->otp_expires_at)) {
+                $remainingSeconds = now()->diffInSeconds($user->otp_expires_at);
+                return response()->json([
+                    'error' => "Please wait {$remainingSeconds} seconds before requesting a new OTP"
+                ], 429);
+            }
+
             $otp = rand(1000, 9999);
 
             $user->update([
@@ -64,11 +72,11 @@ class OtpController extends Controller
                 'otp_expires_at' => now()->addMinutes(1),
             ]);
 
-            $user->notify(new SendOtpNotification($otp));
+            //$user->notify(new SendOtpNotification($otp));
 
             return response()->json(['message' => 'OTP resent successfully']);
         } catch (\Exception $e) {
-            \Log::error('OTP Resend Error: ' . $e->getMessage());
+            Log::error('OTP Resend Error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to send OTP. Please try again.'], 500);
         }
     }

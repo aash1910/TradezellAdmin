@@ -17,7 +17,7 @@ Route::group([
 ], function () {
     Route::crud('permission', 'PermissionCrudController');
     Route::crud('role', 'RoleCrudController');
-    Route::crud('user', 'UserCrudController');
+    //Route::crud('user', 'UserCrudController');
 
     if (app('env') == 'production') {
         // disable delete and bulk delete for all CRUDs

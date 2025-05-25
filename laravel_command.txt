@@ -62,5 +62,9 @@ create new migration:
 /Applications/MAMP/bin/php/php7.4.33/bin/php artisan make:migration create_permission_tables
 run migration:
 /Applications/MAMP/bin/php/php7.4.33/bin/php artisan migrate 
+
 run specific migration:
 /Applications/MAMP/bin/php/php7.4.33/bin/php artisan migrate --path=/database/migrations/2025_05_21_091908_create_packages_table.php
+
+to clear the route cache:
+/Applications/MAMP/bin/php/php7.4.33/bin/php artisan optimize:clear
