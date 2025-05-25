@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Api\UserProfileController;
 
 
 /*
@@ -24,9 +25,13 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 |
 */
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:api'); 
+// Public routes
+Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/verify-otp', [OtpController::class, 'verify']);
+Route::post('/resend-otp', [OtpController::class, 'resend']);
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 
 Route::get('/send_email_quote', function (Request $request) {
     $data = $request->toArray();
@@ -50,12 +55,16 @@ Route::get('/home', function () {
     return ['data' => []]; // Replace with your actual data source
 });
 
-Route::post('/verify-otp', [OtpController::class, 'verify']);
-Route::post('/resend-otp', [OtpController::class, 'resend']);
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return response()->json([
+            'message' => 'User authenticated successfully',
+            'user' => $request->user()
+        ]);
+    });
+    Route::post('/logout', [LoginController::class, 'logout']);
+    Route::post('/upload-image', [UserProfileController::class, 'uploadImage']);
+});
 
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout']);
 
-Route::post('/register', [RegisterController::class, 'register']);
-Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
-Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');

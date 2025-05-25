@@ -122,7 +122,9 @@ class OrderCrudController extends CrudController
             'model' => 'App\User',
             'attribute' => 'full_name',
             'options'   => (function ($query) {
-                return $query->role('dropper')->get();
+                return $query->whereHas('roles', function($q) {
+                    $q->whereIn('name', ['dropper']);
+                })->get();
             }),
             'allows_null' => true,
             'placeholder' => '-'

@@ -37,11 +37,19 @@ class LoginController extends Controller
             return response()->json(['message' => 'Your account is not active. Please contact support.'], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Delete existing tokens for this user
+        $user->tokens()->delete();
+
+        // Create new token
+        $token = $user->createToken('auth_token');
+        
+        if (!$token || !$token->plainTextToken) {
+            return response()->json(['message' => 'Failed to create access token'], 500);
+        }
 
         return response()->json([
             'message' => 'Login successful',
-            'access_token' => $token,
+            'access_token' => $token->plainTextToken,
             'token_type' => 'Bearer',
             'user' => $user,
         ]);
@@ -50,21 +58,9 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         try {
-            $token = $request->bearerToken();
-            if (!$token) {
-                return response()->json(['message' => 'No bearer token found'], 401);
-            }
-
-            [$id, $token] = explode('|', $token);
-            
-            $tokenModel = PersonalAccessToken::find($id);
-            if (!$tokenModel) {
-                return response()->json(['message' => 'Invalid token'], 401);
-            }
-
-            $tokenModel->delete();
+            // This ensures the token belongs to the authenticated user
+            $request->user()->currentAccessToken()->delete();
             return response()->json(['message' => 'Logged out successfully']);
-
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to logout'], 500);
         }

@@ -86,7 +86,9 @@ class PackageCrudController extends CrudController
             'model' => "App\User",
             'attribute' => 'full_name',
             'options'   => (function ($query) {
-                return $query->role('sender')->get();
+                return $query->whereHas('roles', function($q) {
+                    $q->whereIn('name', ['sender']);
+                })->get();
             }),
             'wrapper' => [
                 'class' => 'form-group col-md-4',
