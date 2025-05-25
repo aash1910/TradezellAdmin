@@ -20,8 +20,13 @@ class UserCrudController extends BackpackUserCrudController
 
         $this->crud->addColumns([
             [
-                'name'  => 'full_name',
-                'label' => trans('backpack::permissionmanager.name'),
+                'name'  => 'first_name',
+                'label' => 'First Name',
+                'type'  => 'text',
+            ],
+            [
+                'name'  => 'last_name',
+                'label' => 'Last Name',
                 'type'  => 'text',
             ],
             [

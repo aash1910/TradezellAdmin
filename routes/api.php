@@ -8,6 +8,9 @@ use App\Models\LandingPage;
 use App\Models\Page;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 
 /*
@@ -53,31 +56,6 @@ Route::post('/resend-otp', [OtpController::class, 'resend']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
 
-// Add this route before your logout route
-Route::get('/check-auth', function (Request $request) {
-    $token = $request->bearerToken();
-    $tokenId = explode('|', $token)[0] ?? null;
-    $tokenValue = explode('|', $token)[1] ?? null;
-    
-    $tokenExists = null;
-    if ($tokenId && $tokenValue) {
-        $tokenExists = PersonalAccessToken::where('id', $tokenId)->exists();
-    }
-    
-    return response()->json([
-        'authenticated' => auth()->check(),
-        'user' => auth()->user(),
-        'token_present' => !empty($token),
-        'token' => $token,
-        'token_id' => $tokenId,
-        'token_exists' => $tokenExists ? 'yes' : 'no'
-    ]);
-})->middleware('auth:sanctum');
-
-// Add this route to test authentication
-Route::get('/test-auth', function (Request $request) {
-    return response()->json([
-        'message' => 'Authenticated successfully',
-        'user' => $request->user()
-    ]);
-})->middleware('auth:sanctum');
+Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
