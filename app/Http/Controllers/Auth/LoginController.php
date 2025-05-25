@@ -52,56 +52,21 @@ class LoginController extends Controller
         try {
             $token = $request->bearerToken();
             if (!$token) {
-                return response()->json([
-                    'message' => 'No bearer token found',
-                    'debug' => 'Token missing in request'
-                ], 401);
+                return response()->json(['message' => 'No bearer token found'], 401);
             }
 
             [$id, $token] = explode('|', $token);
             
             $tokenModel = PersonalAccessToken::find($id);
             if (!$tokenModel) {
-                return response()->json([
-                    'message' => 'Invalid token',
-                    'debug' => ['token_id' => $id, 'exists' => false]
-                ], 401);
+                return response()->json(['message' => 'Invalid token'], 401);
             }
 
-            // Try to find the user directly from the token
-            $user = $tokenModel->tokenable;
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Token exists but no associated user',
-                    'debug' => [
-                        'token_id' => $id,
-                        'tokenable_type' => $tokenModel->tokenable_type,
-                        'tokenable_id' => $tokenModel->tokenable_id
-                    ]
-                ], 401);
-            }
-
-            // Delete the token
             $tokenModel->delete();
-            
-            return response()->json([
-                'message' => 'Logged out successfully',
-                'debug' => [
-                    'user_id' => $user->id,
-                    'token_id' => $id
-                ]
-            ]);
+            return response()->json(['message' => 'Logged out successfully']);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to logout',
-                'error' => $e->getMessage(),
-                'debug' => [
-                    'token' => $request->bearerToken(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ]
-            ], 500);
+            return response()->json(['message' => 'Failed to logout'], 500);
         }
     }
 }
