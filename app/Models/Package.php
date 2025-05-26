@@ -28,7 +28,8 @@ class Package extends Model
         'pickup_name', 'pickup_mobile', 'pickup_address', 'pickup_details',
         'weight', 'price', 'pickup_date', 'pickup_time',
         'drop_name', 'drop_mobile', 'drop_address', 'drop_details',
-        'pickup_lat', 'pickup_lng', 'drop_lat', 'drop_lng'
+        'pickup_lat', 'pickup_lng', 'drop_lat', 'drop_lng', 
+        'status'
     ];
 
     /*

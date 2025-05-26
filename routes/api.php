@@ -12,6 +12,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\UserProfileController;
+use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\OrderController;
 
 
 /*
@@ -65,6 +67,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::post('/upload-image', [UserProfileController::class, 'uploadImage']);
+    
+    // Package routes
+    Route::post('/packages', [PackageController::class, 'store']);
+    Route::put('/packages/{id}', [PackageController::class, 'update']);
+    Route::get('/packages/my-packages', [PackageController::class, 'myPackages']);
+    Route::patch('/packages/{id}/cancel', [PackageController::class, 'cancel']);
+    Route::get('/packages/search', [PackageController::class, 'searchPackages']);
+
+    // Order routes
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::get('/orders/my-orders', [OrderController::class, 'myOrders']);
 });
 
 

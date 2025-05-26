@@ -60,6 +60,21 @@ class PackageCrudController extends CrudController
         CRUD::column('drop_name')->label('Drop-off Name');
         CRUD::column('drop_mobile')->label('Drop-off Number');
         CRUD::column('drop_address')->label('Drop-off Location');
+        CRUD::column('status')->wrapper([
+            'element' => 'span',
+            'class' => function ($crud, $column, $entry, $related_key) {
+                switch ($entry->status) {
+                    case 'active':
+                        return 'badge badge-info';
+                    case 'inactive':
+                        return 'badge badge-danger';
+                    case 'delivered':
+                        return 'badge badge-success';
+                    default:
+                        return 'badge badge-default';
+                }
+            }
+        ]);
     }
 
     /**
@@ -206,6 +221,21 @@ class PackageCrudController extends CrudController
             'tab' => 'Drop-off details', 
             'wrapper' => [
                 'class' => 'form-group col-md-6',
+            ],
+        ]);
+
+        CRUD::addField([
+            'name' => 'status',
+            'label' => 'Status',
+            'type' => 'select2_from_array',
+            'options' => [
+                'active' => 'Active',
+                'inactive' => 'Inactive',
+                'delivered' => 'Delivered',
+            ],
+            'tab' => 'Status',
+            'wrapper' => [
+                'class' => 'form-group col-md-3',
             ],
         ]);
         
