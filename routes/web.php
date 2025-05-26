@@ -13,3 +13,7 @@
 use Illuminate\Http\Request;
 use App\Models\LandingPage;
 use App\Models\Page;
+
+Route::get('/', function () {
+    return redirect('/admin');
+});

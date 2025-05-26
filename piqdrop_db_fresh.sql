@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 26, 2025 at 11:53 AM
+-- Generation Time: May 26, 2025 at 03:51 PM
 -- Server version: 5.7.39
 -- PHP Version: 7.4.33
 
@@ -63,13 +63,6 @@ CREATE TABLE `faqs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Dumping data for table `faqs`
---
-
-INSERT INTO `faqs` (`id`, `title`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'What is Lorem Ipsum?', 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.', 0, '2025-05-24 07:54:00', '2025-05-24 07:57:43');
 
 -- --------------------------------------------------------
 
@@ -211,23 +204,7 @@ CREATE TABLE `model_has_roles` (
 --
 
 INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
-(1, 'App\\User', 1),
-(2, 'App\\User', 2),
-(3, 'App\\User', 5),
-(2, 'App\\User', 6),
-(3, 'App\\User', 7),
-(2, 'App\\User', 8),
-(2, 'App\\User', 9),
-(2, 'App\\User', 10),
-(2, 'App\\User', 11),
-(2, 'App\\User', 12),
-(2, 'App\\User', 13),
-(2, 'App\\User', 14),
-(3, 'App\\User', 16),
-(2, 'App\\User', 17),
-(3, 'App\\User', 17),
-(3, 'App\\User', 18),
-(2, 'App\\User', 19);
+(1, 'App\\User', 1);
 
 -- --------------------------------------------------------
 
@@ -243,15 +220,6 @@ CREATE TABLE `orders` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`id`, `package_id`, `dropper_id`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, 7, 'completed', '2025-05-24 04:53:17', '2025-05-24 06:29:45'),
-(3, 7, 17, 'canceled', '2025-05-25 21:09:45', '2025-05-25 23:08:23'),
-(5, 6, 17, 'completed', '2025-05-25 21:15:49', '2025-05-25 21:28:30');
 
 -- --------------------------------------------------------
 
@@ -283,19 +251,6 @@ CREATE TABLE `packages` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
---
--- Dumping data for table `packages`
---
-
-INSERT INTO `packages` (`id`, `sender_id`, `pickup_name`, `pickup_mobile`, `pickup_address`, `pickup_details`, `weight`, `price`, `status`, `pickup_date`, `pickup_time`, `drop_name`, `drop_mobile`, `drop_address`, `drop_details`, `pickup_lat`, `pickup_lng`, `drop_lat`, `drop_lng`, `created_at`, `updated_at`) VALUES
-(1, 17, 'Gream smith', '+8801712501289', '47 walington', 'hand bag', 10.21, '520.00', 'delivered', '2025-05-21', '22:19:00', 'john doe', '+9112341234123', 'pahelgam, india', 'call him morning', NULL, NULL, NULL, NULL, '2025-05-21 04:05:47', '2025-05-21 04:27:40'),
-(2, 17, 'John Doe', '+123456789090', '123 Pickup St, City', 'Near the park', 5.50, '25.00', 'active', '2025-05-26', '14:30:00', 'Jane Smith', '0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 19:20:33', '2025-05-25 19:29:02'),
-(3, 17, 'John Doe', '1234567890', '123 Pickup St, City', 'Near the park', 5.50, '25.00', 'active', '2025-05-26', '14:30:00', 'Jane Smith', '0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 19:25:45', '2025-05-25 19:25:45'),
-(4, 17, 'John Doe', '1234567890', '123 Pickup St, City', 'Near the park', 5.50, '25.00', 'active', '2025-05-26', '14:30:00', 'Jane Smith', '0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 19:28:29', '2025-05-25 19:28:29'),
-(5, 17, 'John Doe', '+1234567890', '123 Pickup St, City', 'Near the park', 5.50, '25.00', 'active', '2025-05-26', '14:30:00', 'Jane Smith', '+0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 20:12:32', '2025-05-25 20:12:32'),
-(6, 8, 'John Doe', '+1234567890', '123 Pickup St, City', 'Near the park', 5.50, '25.00', 'delivered', '2025-05-26', '14:30:00', 'Jane Smith', '+0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 20:14:32', '2025-05-25 21:27:48'),
-(7, 17, 'John Doe 2', '+1234567890', '123 Pickup St, City', 'Near the park', 5.55, '26.00', 'inactive', '2025-05-26', '14:30:00', 'Jane Smith', '+0987654321', '456 Drop Ave, City', 'Office building', '12.3456000', '78.9012000', '12.3789000', '78.9345000', '2025-05-25 20:20:12', '2025-05-25 23:23:18');
-
 -- --------------------------------------------------------
 
 --
@@ -323,13 +278,6 @@ CREATE TABLE `password_resets` (
   `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Dumping data for table `password_resets`
---
-
-INSERT INTO `password_resets` (`email`, `token`, `created_at`) VALUES
-('john.doe@gmail.com', '$2y$10$XBm1/5xefiJsryhMh5n7wOjpAM8byoLezF5nXcUFijlWo2tYrEVkS', '2025-05-25 04:28:43');
 
 -- --------------------------------------------------------
 
@@ -363,13 +311,6 @@ CREATE TABLE `personal_access_tokens` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
---
--- Dumping data for table `personal_access_tokens`
---
-
-INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `created_at`, `updated_at`) VALUES
-(25, 'App\\User', 17, 'auth_token', 'd967360cf23f0cfd3408e3826889d4626113be19dcf4596f440717f9d103668d', '[\"*\"]', '2025-05-25 23:52:02', '2025-05-25 18:26:28', '2025-05-25 23:52:02');
-
 -- --------------------------------------------------------
 
 --
@@ -386,14 +327,6 @@ CREATE TABLE `reviews` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Dumping data for table `reviews`
---
-
-INSERT INTO `reviews` (`id`, `order_id`, `reviewer_id`, `reviewee_id`, `rating`, `review_text`, `created_at`, `updated_at`) VALUES
-(1, 1, 5, 6, 3, ' great job', '2025-05-24 07:23:08', '2025-05-24 07:24:40'),
-(2, 1, 2, 6, 3, 'great', '2025-05-24 07:30:02', '2025-05-24 07:30:02');
 
 -- --------------------------------------------------------
 
@@ -463,22 +396,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `mobile`, `address`, `date_of_birth`, `gender`, `nationality`, `image`, `document`, `status`, `email`, `email_verified_at`, `password`, `remember_token`, `otp`, `is_verified`, `otp_expires_at`, `created_at`, `updated_at`) VALUES
-(1, 'Super', 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'admin@piqdrop.com', NULL, '$2y$10$VJJmtpHHd26i6Y3aCybjuOJNxJxphDijUf1EUSZ1qOacelKW5jsnG', 'LEL1FZbFe1FjpLvAXmCb7XchYZdgp1DAvfnwYH06ft2mA79QUYh6YVrnmEuW', NULL, 0, NULL, NULL, '2025-05-21 05:06:57'),
-(2, 'Gream', 'Smith', '+4901712501289', '47 berlin west, germany', '1993-05-20', 'male', 'Germany', 'uploads/images/5df4b36ed06a5443bbeebae8f310da3c.jpeg', NULL, 'active', 'gream@gmail.com', NULL, '$2y$10$/k58AI/UhDH9Pb0HQ9mIRO222pTpo9pqjQH6qE3hBdLFEH7PRVwvm', '3Umoazuo22JsdMXfmb3DY8uK1IG9vMUYZZI8VaeY7CsY7OicvdFH9MWiMaff', NULL, 0, NULL, NULL, '2025-05-24 09:32:36'),
-(5, 'John', 'Doe', '+8801712501289', 'HNS, floor 7 , Tower 1, Police plaza, Dhaka', '2004-01-08', 'male', 'Bangladesh', 'uploads/images/8a303d5f9e30b21bfd442fa906c48d61.jpeg', NULL, 'active', 'john_doe@gmail.com', NULL, '$2y$10$meHKz73hT9GXU2SGrNdji.XyJ2LVTthCenFNKPU0/viEw5Zg2n4OS', 'ejZOhFxj63d8qmaOBy5MLFY4N7nFOrqXJpOigiBACqPyjOHvKJYP091pd6Re', NULL, 0, NULL, NULL, '2025-05-21 00:26:26'),
-(6, 'Ashraful', 'Islam', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', '2025-05-08', 'female', 'Antigua and Barbuda', 'uploads/images/6b2517e69240d56b74ae678e06fa4937.png', NULL, 'active', 's1@piqdrop.com', NULL, '$2y$10$ZCx/5DH3oM/ThTqkcmnE.OW66CVbMkySQqsK2TjrMj79OtV3Gw9Iu', NULL, NULL, 0, NULL, '2025-05-20 23:56:11', '2025-05-21 00:12:47'),
-(7, 'Ashraful', 'Islam', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', '2025-05-01', 'female', 'Central African Republic', 'uploads/images/0ed95b3d15e2f36525ab762f5edbf996.png', 'uploads/documents/dfb5c92bb5a31c1c04dd18750519fb2f.png', 'pending', 'd1@piqdrop.com', NULL, '$2y$10$bL0tP.XZmO6kACaldhvKQeTmjEltKjgTiMflauB8xo2gx5iPiQT5C', NULL, NULL, 0, NULL, '2025-05-21 00:23:13', '2025-05-21 00:56:21'),
-(8, 'Sender2', 'Sender2', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', '2009-05-04', 'male', 'Argentina', NULL, NULL, 'active', 'Sender2@gmail.com', NULL, '$2y$10$in90bG1iLTvYxkM8qxKTXedPI7zVPgobpMNZcM8rUKyyjBrFqcSIu', NULL, NULL, 0, NULL, '2025-05-24 08:43:32', '2025-05-24 08:43:32'),
-(9, 'sender3', 'sender3', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'sender3@gmail.com', NULL, '$2y$10$PX0u9KpYrsS9SjwozJ1KIezG2uQvDxXqeeQjhFahS0e8KQr6/mUui', NULL, NULL, 0, NULL, '2025-05-24 08:48:04', '2025-05-24 08:48:04'),
-(10, 'sender4', 'sender4', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'sender4@gmail.com', NULL, '$2y$10$hvozB/wlT2JCdE9EiACgzeUX360B8qThkF/mkbEjxTv0Fjffw4HM2', NULL, NULL, 0, NULL, '2025-05-24 08:52:57', '2025-05-24 08:52:57'),
-(11, 'sender5', 'sender5', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'sender5@gmail.com', NULL, '$2y$10$LjRsPzc7Vr9eS/248I6/YusIDHPExlEJzgp3mSxIqqlY0lLRJKWsW', NULL, NULL, 0, NULL, '2025-05-24 08:59:32', '2025-05-24 08:59:32'),
-(12, 'sender6', 'sender6', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'sender6@gmail.com', NULL, '$2y$10$yijgYJQRsToaM3v2V9aHD.tczEyxDWnBATD3fS4SuGKlLVDWaIDlK', NULL, '439863', 0, '2025-05-24 09:13:47', '2025-05-24 09:03:47', '2025-05-24 09:03:47'),
-(13, 'sender7', 'sender7', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', NULL, NULL, NULL, NULL, NULL, 'active', 'sender7@gmail.com', NULL, '$2y$10$zhnlheKhfomFmraHvu9YEOPl4l4f5qOJHeX5.2IhyW99wMghkY5XW', NULL, '2399', 1, '2025-05-24 09:08:16', '2025-05-24 09:07:47', '2025-05-24 09:20:46'),
-(14, 'Ashraful', 'Islam', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', NULL, NULL, NULL, NULL, NULL, 'active', 'ashraful1910@gmail.com', NULL, '$2y$10$UvOOLJJ9PftdPrGQPmxmCeabZlS0J1IjHShZTfTeBTxRewAxsnJuS', 'nXyVk7YNsBZuZXs76RwKSkAhHE2m954gfn6sEllnDb4yYqQ8XUi3vEs76lkx', NULL, 1, NULL, '2025-05-24 09:33:19', '2025-05-25 18:11:29'),
-(16, 'dropper3', 'dropper3', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'dropper3@gmail.com', NULL, '$2y$10$0ys1xoSWdSDCBEbpZHK/6.Q20P0h5AiC2a/sI.7Zbk28fhCWxSvI2', NULL, NULL, 0, NULL, '2025-05-24 23:43:52', '2025-05-24 23:44:50'),
-(17, 'john', 'doe', NULL, NULL, NULL, 'male', 'Sweden', 'uploads/images/9e8cfcc48dc04e1a6193183829922c32.jpeg', 'uploads/documents/8781df424bc7dfc8737f726ab732f9ff.jpeg', 'active', 'john.doe@gmail.com', NULL, '$2y$10$LiZJJcAPPn1n/2hbMaj8ee2bIC3tvIs7KWavSh7kcDBUpVah604pq', NULL, NULL, 1, NULL, '2025-05-25 03:17:25', '2025-05-25 09:53:39'),
-(18, 'john', 'doe', NULL, NULL, NULL, 'male', 'Sweden', NULL, NULL, 'active', 'john.doe.2@gmail.com', NULL, '$2y$10$UJZPvluDCMM2C6eJgM/.EOoaDQh6RmZ3dj/dRB6MVmihyWT/6t5Ua', NULL, '3550', 0, '2025-05-25 03:33:58', '2025-05-25 03:32:58', '2025-05-25 03:32:58'),
-(19, 'john', 'doe', NULL, NULL, NULL, 'male', 'Sweden', NULL, NULL, 'active', 'john.doe.3@gmail.com', NULL, '$2y$10$DtjlOBFODiMK1.VIOqLGVOeEydh9/UJpa4exby7WG9pvQYLBtBkea', NULL, '2349', 0, '2025-05-25 09:02:05', '2025-05-25 09:01:05', '2025-05-25 18:12:24');
+(1, 'Super', 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'admin@piqdrop.com', NULL, '$2y$10$VJJmtpHHd26i6Y3aCybjuOJNxJxphDijUf1EUSZ1qOacelKW5jsnG', 'YbPPA3PuYnMBdU4FMw0MAl8qd1oQfyr84QoRYzkKA9Tn6jZMBXWpo74v2pn8', NULL, 0, NULL, NULL, '2025-05-21 05:06:57');
 
 --
 -- Indexes for dumped tables
@@ -618,7 +536,7 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `faqs`
 --
 ALTER TABLE `faqs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `landing_pages`
@@ -642,7 +560,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `packages`
 --
 ALTER TABLE `packages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pages`
@@ -660,13 +578,13 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `roles`

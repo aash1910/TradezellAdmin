@@ -14,6 +14,8 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\FaqController;
 
 
 /*
@@ -34,6 +36,7 @@ Route::post('/resend-otp', [OtpController::class, 'resend']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
+Route::get('/faqs', [FaqController::class, 'index']);
 
 Route::get('/send_email_quote', function (Request $request) {
     $data = $request->toArray();
@@ -79,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::get('/orders/my-orders', [OrderController::class, 'myOrders']);
+
+    // Review routes
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });
 
 
