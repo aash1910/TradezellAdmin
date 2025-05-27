@@ -21,12 +21,18 @@ class LoginController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'role' => 'sometimes|string',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid email or password'], 401);
+        }
+
+        // Check role if provided
+        if ($request->has('role') && !$user->roles->contains('name', $request->role)) {
+            return response()->json(['message' => 'User does not have the specified role'], 403);
         }
 
         if (! $user->is_verified) {
