@@ -72,7 +72,7 @@ class OtpController extends Controller
                 'otp_expires_at' => now()->addMinutes(1),
             ]);
 
-            //$user->notify(new SendOtpNotification($otp));
+            $user->notify(new SendOtpNotification($otp));
 
             return response()->json(['message' => 'OTP resent successfully']);
         } catch (\Exception $e) {

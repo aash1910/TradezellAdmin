@@ -51,7 +51,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token', 'otp', 'otp_expires_at', 'is_verified', 'status', 'email_verified_at'
+        'password', 'remember_token', 'otp', 'otp_expires_at', 'status', 'email_verified_at', 'created_at', 'updated_at'
     ];
 
     public function getFullNameAttribute()
