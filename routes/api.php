@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 use App\Models\LandingPage;
 use App\Models\Page;
@@ -39,21 +40,47 @@ Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name(
 Route::get('/faqs', [FaqController::class, 'index']);
 
 Route::get('/send_email_quote', function (Request $request) {
-    $data = $request->toArray();
-    $text = "";
+    try {
+        $data = $request->validate([
+            'to' => 'required|email',
+            'email' => 'required|email',
+            'name' => 'required|string',
+        ]);
 
-    foreach ($data as $key => $content) {
-        if($key == 'to') continue;
-        $text.= ucfirst($key) . " : {$content} \n"; 
+        $text = "";
+        foreach ($request->except(['to']) as $key => $content) {
+            $text .= ucfirst($key) . ": {$content}\n";
+        }
+
+        // Set email headers
+        $headers = [
+            'From' => $data['email'],
+            'Reply-To' => $data['email'],
+            'X-Mailer' => 'PHP/' . phpversion(),
+            'Content-Type' => 'text/plain; charset=UTF-8'
+        ];
+
+        // Convert headers array to string
+        $headerString = '';
+        foreach ($headers as $key => $value) {
+            $headerString .= "$key: $value\r\n";
+        }
+
+        // Send email using PHP's mail function
+        $subject = 'Get a free quote';
+        if (mail($data['to'], $subject, $text, $headerString)) {
+            return response()->json(['status' => 'success', 'message' => 'Email sent successfully']);
+        } else {
+            throw new \Exception('Failed to send email');
+        }
+    } catch (\Exception $e) {
+        Log::error('Email sending failed: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to send email. Please try again later.',
+            'debug' => config('app.debug') ? $e->getMessage() : null
+        ], 500);
     }
-
-    Mail::raw($text, function ($message) use($data) {
-        $message->to($data['to'])
-            ->from($data['email'], $data['name'])
-            ->subject('Get a free quote');
-    });
-
-    return ['response' => 'success'];
 });
 
 Route::get('/home', function () {
