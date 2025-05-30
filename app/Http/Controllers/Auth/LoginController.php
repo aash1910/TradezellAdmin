@@ -35,9 +35,9 @@ class LoginController extends Controller
             return response()->json(['message' => 'User does not have the specified role'], 403);
         }
 
-        if (! $user->is_verified) {
-            return response()->json(['message' => 'Please verify your OTP before logging in.'], 403);
-        }
+        // if (! $user->is_verified) {
+        //     return response()->json(['message' => 'Please verify your OTP before logging in.'], 403);
+        // }
 
         if ($user->status !== 'active') {
             return response()->json(['message' => 'Your account is not active. Please contact support.'], 403);
