@@ -40,8 +40,8 @@ class PackageController extends Controller
                         'mobile' => $package->pickup_mobile,
                         'address' => $package->pickup_address,
                         'details' => $package->pickup_details,
-                        'date' => $package->pickup_date,
-                        'time' => $package->pickup_time,
+                        'date' => date('Y-m-d', strtotime($package->pickup_date)),
+                        'time' => date('H:i', strtotime($package->pickup_time)),
                         'coordinates' => [
                             'lat' => $package->pickup_lat,
                             'lng' => $package->pickup_lng,
@@ -62,7 +62,7 @@ class PackageController extends Controller
                         'status' => $package->order->status,
                         'dropper' => [
                             'id' => $package->order->dropper->id,
-                            'name' => $package->order->dropper->full_name,
+                            'image' => $package->order->dropper->image,
                         ],
                         'created_at' => $package->order->created_at,
                         'updated_at' => $package->order->updated_at,
@@ -144,13 +144,19 @@ class PackageController extends Controller
         $validatedData['sender_id'] = auth()->id();
 
         $package = Package::create($validatedData);
+        $package->load('sender:id,image');
 
         return response()->json([
             'status' => 'success',
             'message' => 'Package created successfully',
             'data' => [
                 'id' => $package->id,
-                'sender_id' => $package->sender_id,
+                'sender' => [
+                    'id' => $package->sender->id,
+                    'image' => $package->sender->image,
+                ],
+                'weight' => $package->weight,
+                'price' => $package->price,
                 'pickup' => [
                     'name' => $package->pickup_name,
                     'mobile' => $package->pickup_mobile,
@@ -172,13 +178,8 @@ class PackageController extends Controller
                         'lat' => $package->drop_lat,
                         'lng' => $package->drop_lng,
                     ],
-                ],
-                'package_info' => [
-                    'weight' => $package->weight,
-                    'price' => $package->price,
-                ],
-                'created_at' => $package->created_at,
-                'updated_at' => $package->updated_at,
+                ]
+
             ]
         ], 201);
     }
@@ -204,13 +205,19 @@ class PackageController extends Controller
 
         $validatedData = $request->validated();
         $package->update($validatedData);
+        $package->load('sender:id,image');
 
         return response()->json([
             'status' => 'success',
             'message' => 'Package updated successfully',
             'data' => [
                 'id' => $package->id,
-                'sender_id' => $package->sender_id,
+                'sender' => [
+                    'id' => $package->sender->id,
+                    'image' => $package->sender->image,
+                ],
+                'weight' => $package->weight,
+                'price' => $package->price,
                 'pickup' => [
                     'name' => $package->pickup_name,
                     'mobile' => $package->pickup_mobile,
@@ -232,13 +239,7 @@ class PackageController extends Controller
                         'lat' => $package->drop_lat,
                         'lng' => $package->drop_lng,
                     ],
-                ],
-                'package_info' => [
-                    'weight' => $package->weight,
-                    'price' => $package->price,
-                ],
-                'created_at' => $package->created_at,
-                'updated_at' => $package->updated_at,
+                ]
             ]
         ]);
     }
