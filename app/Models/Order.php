@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\User;
 use App\Models\Package;
+use App\Models\Review;
 
 class Order extends Model
 {
@@ -51,6 +52,11 @@ class Order extends Model
     public function dropper()
     {
         return $this->belongsTo(User::class, 'dropper_id');
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class);
     }
 
     /*

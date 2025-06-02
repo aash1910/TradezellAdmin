@@ -22,6 +22,7 @@ class PackageController extends Controller
         $packages = Package::with('order')
             ->where('sender_id', auth()->id())
             ->with('sender:id,image')
+            ->with('order.review')
             ->latest()
             ->get()
             ->map(function ($package) {
@@ -62,12 +63,14 @@ class PackageController extends Controller
                         'status' => $package->order->status,
                         'dropper' => [
                             'id' => $package->order->dropper->id,
+                            'name' => $package->order->dropper->first_name . ' ' . $package->order->dropper->last_name,
                             'image' => $package->order->dropper->image,
                         ],
+                        'review_submitted' => $package->order->review ? true : false,
                         'created_at' => $package->order->created_at,
                         'updated_at' => $package->order->updated_at,
                     ] : [
-                        'status' => 'ongoing'
+                        'status' => $package->status === 'active' ? 'ongoing' : 'canceled'
                     ],
                     'created_at' => $package->created_at,
                     'updated_at' => $package->updated_at,

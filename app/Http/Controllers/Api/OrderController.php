@@ -63,7 +63,19 @@ class OrderController extends Controller
         
         $order->update([
             'status' => $request->status
-        ]);
+        ]); 
+        
+        if ($order->status === 'completed') {
+            $order->package->update([
+                'status' => 'delivered'
+            ]);
+        }
+
+        if ($order->status === 'canceled') {
+            $order->package->update([
+                'status' => 'inactive'
+            ]);
+        }
 
         return response()->json([
             'status' => 'success',

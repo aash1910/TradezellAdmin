@@ -24,6 +24,8 @@ class AddFieldsToUsersTable extends Migration
             $table->string('image')->nullable()->after('status');
             $table->string('document')->nullable()->after('image');
             $table->text('address')->nullable()->after('document');
+            $table->decimal('latitude', 10, 7)->nullable()->after('address');
+            $table->decimal('longitude', 10, 7)->nullable()->after('latitude');
             $table->date('date_of_birth')->nullable()->after('address');
             $table->enum('gender', ['male', 'female', 'other'])->nullable()->after('date_of_birth');
             $table->string('nationality')->nullable()->after('gender');

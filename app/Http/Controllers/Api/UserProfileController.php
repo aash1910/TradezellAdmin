@@ -83,4 +83,43 @@ class UserProfileController extends Controller
             ], 500);
         }
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'gender' => 'required|string|max:255',
+            'nationality' => 'required|string|max:255',
+            'date_of_birth' => 'required|date',
+            'address' => 'required|string|max:255',
+            'mobile' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->gender = $request->gender;
+        $user->nationality = $request->nationality;
+        $user->date_of_birth = $request->date_of_birth;
+        $user->address = $request->address;
+        $user->latitude = $request->latitude;
+        $user->longitude = $request->longitude;
+        $user->mobile = $request->mobile;
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
+    }
 } 
