@@ -33,6 +33,7 @@ class AddFieldsToUsersTable extends Migration
             $table->string('otp')->nullable()->after('mobile');
             $table->boolean('is_verified')->default(false)->after('otp');
             $table->timestamp('otp_expires_at')->nullable()->after('is_verified');
+            $table->json('settings')->nullable()->after('otp_expires_at');
         });
     }
 

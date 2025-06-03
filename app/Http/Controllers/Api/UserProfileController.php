@@ -122,4 +122,39 @@ class UserProfileController extends Controller
             'user' => $user
         ]);
     }
+
+    public function updateSettings(Request $request)
+    {
+        $user = $request->user();
+        $validator = Validator::make($request->all(), [
+            'settings' => 'required|array',
+            'settings.language' => 'nullable|string|in:en,es,hi,ar,pt,ru,ja,fr,sv,de,zh',
+            'settings.place' => 'nullable|array',
+            'settings.place.pickup' => 'nullable|array',
+            'settings.place.dropoff' => 'nullable|array',
+            'settings.place.pickup.address' => 'nullable|string',
+            'settings.place.pickup.latitude' => 'nullable|numeric',
+            'settings.place.pickup.longitude' => 'nullable|numeric',
+            'settings.place.dropoff.address' => 'nullable|string',
+            'settings.place.dropoff.latitude' => 'nullable|numeric',
+            'settings.place.dropoff.longitude' => 'nullable|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user->settings = json_encode($request->settings); 
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Settings updated successfully',
+            'settings' => $user->settings
+        ]);
+    }
 } 
