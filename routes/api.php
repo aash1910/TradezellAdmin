@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\MessageController;
 
 
 /*
@@ -114,6 +115,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Review routes
     Route::post('/reviews', [ReviewController::class, 'store']);
+
+    // Message routes
+    Route::get('/messages/{userId}', [MessageController::class, 'getMessages']);
+    Route::post('/messages', [MessageController::class, 'sendMessage']);
 });
 
 

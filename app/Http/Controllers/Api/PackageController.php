@@ -65,6 +65,7 @@ class PackageController extends Controller
                             'id' => $package->order->dropper->id,
                             'name' => $package->order->dropper->first_name . ' ' . $package->order->dropper->last_name,
                             'image' => $package->order->dropper->image,
+                            'mobile' => $package->order->dropper->mobile,
                         ],
                         'review_submitted' => $package->order->review ? true : false,
                         'created_at' => $package->order->created_at,
