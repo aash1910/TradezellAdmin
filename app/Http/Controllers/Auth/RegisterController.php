@@ -61,7 +61,7 @@ class RegisterController extends Controller
             'is_verified' => false,
         ]);
 
-        //$user->notify(new SendOtpNotification($otp));
+        $user->notify(new SendOtpNotification($otp));
 
         return response()->json([
             'status' => 'success',
