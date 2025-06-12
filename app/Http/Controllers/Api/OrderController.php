@@ -123,42 +123,52 @@ class OrderController extends Controller
             ->get()
             ->map(function ($order) {
                 return [
-                    'id' => $order->id,
-                    'status' => $order->status,
-                    'package' => [
-                        'id' => $order->package->id,
-                        'info' => $order->package->package_info,
-                        'weight' => $order->package->weight,
-                        'price' => $order->package->price,
-                        'sender' => [
-                            'id' => $order->package->sender->id,
-                            'image' => $order->package->sender->image,
-                        ],
-                        'pickup' => [
-                            'name' => $order->package->pickup_name,
-                            'mobile' => $order->package->pickup_mobile,
-                            'address' => $order->package->pickup_address,
-                            'details' => $order->package->pickup_details,
-                            'date' => $order->package->pickup_date,
-                            'time' => $order->package->pickup_time,
-                            'coordinates' => [
-                                'lat' => $order->package->pickup_lat,
-                                'lng' => $order->package->pickup_lng,
-                            ],
-                        ],
-                        'drop' => [
-                            'name' => $order->package->drop_name,
-                            'mobile' => $order->package->drop_mobile,
-                            'address' => $order->package->drop_address,
-                            'details' => $order->package->drop_details,
-                            'coordinates' => [
-                                'lat' => $order->package->drop_lat,
-                                'lng' => $order->package->drop_lng,
-                            ],
+                    'id' => $order->package->id,
+                    'info' => $order->package->package_info,
+                    'weight' => $order->package->weight,
+                    'price' => $order->package->price,
+                    'status' => $order->package->status,
+                    'sender' => [
+                        'id' => $order->package->sender->id,
+                        'image' => $order->package->sender->image,
+                    ],
+                    'pickup' => [
+                        'name' => $order->package->pickup_name,
+                        'mobile' => $order->package->pickup_mobile,
+                        'address' => $order->package->pickup_address,
+                        'details' => $order->package->pickup_details,
+                        'date' => date('Y-m-d', strtotime($order->package->pickup_date)),
+                        'time' => date('H:i', strtotime($order->package->pickup_time)),
+                        'coordinates' => [
+                            'lat' => $order->package->pickup_lat,
+                            'lng' => $order->package->pickup_lng,
                         ],
                     ],
-                    'created_at' => $order->created_at,
-                    'updated_at' => $order->updated_at,
+                    'drop' => [
+                        'name' => $order->package->drop_name,
+                        'mobile' => $order->package->drop_mobile,
+                        'address' => $order->package->drop_address,
+                        'details' => $order->package->drop_details,
+                        'coordinates' => [
+                            'lat' => $order->package->drop_lat,
+                            'lng' => $order->package->drop_lng,
+                        ],
+                    ],
+                    'order' => [
+                        'id' => $order->id,
+                        'status' => $order->status,
+                        'dropper' => [
+                            'id' => $order->dropper->id,
+                            'name' => $order->dropper->first_name . ' ' . $order->dropper->last_name,
+                            'image' => $order->dropper->image,
+                            'mobile' => $order->dropper->mobile,
+                        ],
+                        'review_submitted' => $order->review ? true : false,
+                        'created_at' => $order->created_at,
+                        'updated_at' => $order->updated_at,
+                    ],
+                    'created_at' => $order->package->created_at,
+                    'updated_at' => $order->package->updated_at,
                 ];
             });
 

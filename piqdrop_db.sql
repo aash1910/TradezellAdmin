@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: May 26, 2025 at 09:35 PM
+-- Generation Time: Jun 06, 2025 at 08:58 PM
 -- Server version: 5.7.39
 -- PHP Version: 7.4.33
 
@@ -162,6 +162,21 @@ CREATE TABLE `landing_pages` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `sender_id` bigint(20) UNSIGNED NOT NULL,
+  `receiver_id` bigint(20) UNSIGNED NOT NULL,
+  `message` text COLLATE utf8_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `migrations`
 --
 
@@ -189,7 +204,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (73, '2025_05_24_123424_create_reviews_table', 5),
 (74, '2025_05_24_135031_create_faqs_table', 6),
 (75, '2019_12_14_000001_create_personal_access_tokens_table', 7),
-(76, '2024_03_26_add_status_to_packages_table', 8);
+(76, '2024_03_26_add_status_to_packages_table', 8),
+(77, '2024_03_21_create_messages_table', 9),
+(78, '2024_03_21_create_notifications_table', 9);
 
 -- --------------------------------------------------------
 
@@ -228,6 +245,32 @@ INSERT INTO `model_has_roles` (`role_id`, `model_type`, `model_id`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `description` text COLLATE utf8_unicode_ci NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `type` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `data` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `user_id`, `title`, `description`, `is_read`, `type`, `data`, `created_at`, `updated_at`) VALUES
+(1, 1, 'New App Update Available', 'We have added new features to improve your experience with PiqDrop', 0, 'app_update', NULL, '2025-06-04 14:55:54', '2025-06-04 14:55:54'),
+(2, 1, 'Scheduled System Maintenance', 'System maintenance is scheduled for March 25, 2024 from 2:00 AM to 4:00 AM', 0, 'maintenance', NULL, '2025-06-04 14:55:54', '2025-06-04 14:55:54');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `orders`
 --
 
@@ -245,7 +288,7 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `package_id`, `dropper_id`, `status`, `created_at`, `updated_at`) VALUES
-(6, 1, 21, 'ongoing', '2025-05-26 04:21:43', '2025-05-26 04:21:43');
+(6, 1, 21, 'canceled', '2025-05-26 04:21:43', '2025-06-02 02:34:22');
 
 -- --------------------------------------------------------
 
@@ -282,7 +325,9 @@ CREATE TABLE `packages` (
 --
 
 INSERT INTO `packages` (`id`, `sender_id`, `pickup_name`, `pickup_mobile`, `pickup_address`, `pickup_details`, `weight`, `price`, `status`, `pickup_date`, `pickup_time`, `drop_name`, `drop_mobile`, `drop_address`, `drop_details`, `pickup_lat`, `pickup_lng`, `drop_lat`, `drop_lng`, `created_at`, `updated_at`) VALUES
-(1, 20, 'John Doe', '+8801712501289', 'road 12, dhaka', 'call me before come', 5.50, 500.00, 'active', '2025-05-27', '22:20:00', 'Greame smith', '+9112341234123', 'road 13, delhi, india', 'come in day time', NULL, NULL, NULL, NULL, '2025-05-26 04:20:32', '2025-05-26 04:20:32');
+(1, 20, 'John Doe', '+8801712501289', 'road 12, dhaka', 'call me before come', 5.50, 500.00, 'inactive', '2025-05-27', '22:20:00', 'Greame smith', '+9112341234123', 'road 13, delhi, india', 'come in day time', NULL, NULL, NULL, NULL, '2025-05-26 04:20:32', '2025-06-02 02:48:49'),
+(2, 20, 'John Doe', '+1234567890', '123 Pickup St, City', 'Near the park', 5.50, 25.00, 'active', '2025-05-31', '14:30:00', 'Jane Smith', '+0987654321', '456 Drop Ave, City', 'Office building', 12.3456000, 78.9012000, 12.3789000, 78.9345000, '2025-05-31 03:20:01', '2025-05-31 03:20:01'),
+(3, 20, 'John Doe', '+1234567890', '123 Pickup St, City', 'Near the park', 5.50, 25.00, 'inactive', '2025-05-31', '14:30:00', 'Jane Smith', '+0987654321', '456 Drop Ave, City', 'Office building', 12.3456000, 78.9012000, 12.3789000, 78.9345000, '2025-05-31 07:09:37', '2025-06-02 02:59:09');
 
 -- --------------------------------------------------------
 
@@ -349,7 +394,8 @@ CREATE TABLE `personal_access_tokens` (
 --
 
 INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `created_at`, `updated_at`) VALUES
-(2, 'App\\User', 22, 'auth_token', 'b481a18ec2d10618f4579116cbf0112552ef102292898ad4d1edebe74428e8fb', '[\"*\"]', '2025-05-26 04:30:33', '2025-05-26 04:28:55', '2025-05-26 04:30:33');
+(4, 'App\\User', 20, 'auth_token', '2540da3964d1c569441b009dfc0c03ddb8ecac6a891f61449df05834dda63a72', '[\"*\"]', '2025-06-03 03:51:48', '2025-06-02 02:27:57', '2025-06-03 03:51:48'),
+(5, 'App\\User', 22, 'auth_token', 'e0c06565bdfc5ff111bfd8f16cee36cf8e977775cb55ead898d55571396355a3', '[\"*\"]', '2025-06-04 09:01:23', '2025-06-04 08:58:10', '2025-06-04 09:01:23');
 
 -- --------------------------------------------------------
 
@@ -414,6 +460,8 @@ CREATE TABLE `users` (
   `last_name` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mobile` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
   `address` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
   `date_of_birth` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `gender` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   `nationality` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -427,6 +475,7 @@ CREATE TABLE `users` (
   `otp` text COLLATE utf8_unicode_ci,
   `is_verified` tinyint(1) NOT NULL DEFAULT '0',
   `otp_expires_at` timestamp NULL DEFAULT NULL,
+  `settings` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -435,11 +484,11 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `first_name`, `last_name`, `mobile`, `address`, `date_of_birth`, `gender`, `nationality`, `image`, `document`, `status`, `email`, `email_verified_at`, `password`, `remember_token`, `otp`, `is_verified`, `otp_expires_at`, `created_at`, `updated_at`) VALUES
-(1, 'Super', 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'admin@piqdrop.com', NULL, '$2y$10$VJJmtpHHd26i6Y3aCybjuOJNxJxphDijUf1EUSZ1qOacelKW5jsnG', 'xRttSLXXTEwara20yv12krj9mAj1gTIEErkJfQSCrbJ0cNnnK7bdJLYwJMWe', NULL, 0, NULL, NULL, '2025-05-21 05:06:57'),
-(20, 'John', 'Doe', '+4901712501289', 'road 7, north way, dhaka', '1995-06-06', 'male', 'Bangladesh', 'uploads/images/b12398f0d42e13840094af3d6a0e8028.jpeg', NULL, 'active', 'john.doe@gmail.com', NULL, '$2y$10$VKx/II68CUCCnTUwNpSgLuwj4QcV/ePDtcx5V6IOsXz79yJ6s5SYm', NULL, NULL, 1, NULL, '2025-05-26 04:14:52', '2025-05-26 04:17:45'),
-(21, 'Greame', 'Smith', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', NULL, NULL, NULL, 'uploads/images/c18fcc79d87ec357e8f79789ceed1321.jpeg', NULL, 'active', 'ashraful1910@gmail.com', NULL, '$2y$10$DjBGNRBoIF6RSh6gCGFs7ue1/nS0gnZvI0dJmiw12OlfeZaiNPTz2', NULL, NULL, 1, NULL, '2025-05-26 04:16:04', '2025-05-26 04:17:35'),
-(22, 'john', 'doe', NULL, NULL, NULL, 'male', 'Sweden', 'uploads/images/da3d3f191fb536d07cf2dac95fcf744a.jpeg', NULL, 'active', 'john.doe.3@gmail.com', NULL, '$2y$10$kFITj3iHpkDDp3S0upvgk.bD0V9zcIjuHYCS6IPCCmg91ymJlBcIS', NULL, NULL, 1, NULL, '2025-05-26 04:25:27', '2025-05-26 04:30:33');
+INSERT INTO `users` (`id`, `first_name`, `last_name`, `mobile`, `address`, `latitude`, `longitude`, `date_of_birth`, `gender`, `nationality`, `image`, `document`, `status`, `email`, `email_verified_at`, `password`, `remember_token`, `otp`, `is_verified`, `otp_expires_at`, `settings`, `created_at`, `updated_at`) VALUES
+(1, 'Super', 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', 'admin@piqdrop.com', NULL, '$2y$10$VJJmtpHHd26i6Y3aCybjuOJNxJxphDijUf1EUSZ1qOacelKW5jsnG', 'xRttSLXXTEwara20yv12krj9mAj1gTIEErkJfQSCrbJ0cNnnK7bdJLYwJMWe', NULL, 0, NULL, NULL, NULL, '2025-05-21 05:06:57'),
+(20, 'john', 'doe', ' 8801712501289', 'HNS , Dhaka', 10.9900800, 11.8888800, '1995-06-06', 'male', 'Sweden', 'uploads/images/b12398f0d42e13840094af3d6a0e8028.jpeg', NULL, 'active', 'john.doe@gmail.com', NULL, '$2y$10$VKx/II68CUCCnTUwNpSgLuwj4QcV/ePDtcx5V6IOsXz79yJ6s5SYm', NULL, NULL, 1, NULL, NULL, '2025-05-26 04:14:52', '2025-06-02 09:48:27'),
+(21, 'Greame', 'Smith', '01712501289', 'HNS, floor 7 , Tower 1, Police plaza', NULL, NULL, NULL, NULL, NULL, 'uploads/images/c18fcc79d87ec357e8f79789ceed1321.jpeg', NULL, 'active', 'ashraful1910@gmail.com', NULL, '$2y$10$DjBGNRBoIF6RSh6gCGFs7ue1/nS0gnZvI0dJmiw12OlfeZaiNPTz2', NULL, '4780', 0, '2025-06-04 09:42:04', NULL, '2025-05-26 04:16:04', '2025-06-04 09:41:04'),
+(22, 'john', 'doe', NULL, NULL, NULL, NULL, NULL, 'male', 'Sweden', 'uploads/images/da3d3f191fb536d07cf2dac95fcf744a.jpeg', NULL, 'active', 'john.doe.3@gmail.com', NULL, '$2y$10$kFITj3iHpkDDp3S0upvgk.bD0V9zcIjuHYCS6IPCCmg91ymJlBcIS', NULL, NULL, 1, NULL, NULL, '2025-05-26 04:25:27', '2025-05-26 04:30:33');
 
 --
 -- Indexes for dumped tables
@@ -471,6 +520,14 @@ ALTER TABLE `landing_pages`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `messages_sender_id_foreign` (`sender_id`),
+  ADD KEY `messages_receiver_id_foreign` (`receiver_id`);
+
+--
 -- Indexes for table `migrations`
 --
 ALTER TABLE `migrations`
@@ -489,6 +546,13 @@ ALTER TABLE `model_has_permissions`
 ALTER TABLE `model_has_roles`
   ADD PRIMARY KEY (`role_id`,`model_id`,`model_type`),
   ADD KEY `model_has_roles_model_id_model_type_index` (`model_id`,`model_type`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `notifications_user_id_foreign` (`user_id`);
 
 --
 -- Indexes for table `orders`
@@ -588,10 +652,22 @@ ALTER TABLE `landing_pages`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -603,7 +679,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `packages`
 --
 ALTER TABLE `packages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `pages`
@@ -621,7 +697,7 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -646,6 +722,13 @@ ALTER TABLE `users`
 --
 
 --
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_receiver_id_foreign` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_sender_id_foreign` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `model_has_permissions`
 --
 ALTER TABLE `model_has_permissions`
@@ -656,6 +739,12 @@ ALTER TABLE `model_has_permissions`
 --
 ALTER TABLE `model_has_roles`
   ADD CONSTRAINT `model_has_roles_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `orders`
