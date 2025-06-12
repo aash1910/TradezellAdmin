@@ -116,7 +116,7 @@ class OrderController extends Controller
         }
 
         $orders = Order::with(['package' => function($query) {
-                $query->with('sender:id,image'); // Include sender details
+                $query->with('sender:id,image,first_name,last_name,mobile'); // Include sender details
             }])
             ->where('dropper_id', auth()->id())
             ->latest()
@@ -130,6 +130,8 @@ class OrderController extends Controller
                     'status' => $order->package->status,
                     'sender' => [
                         'id' => $order->package->sender->id,
+                        'name' => $order->package->sender->first_name . ' ' . $order->package->sender->last_name,
+                        'mobile' => $order->package->sender->mobile,
                         'image' => $order->package->sender->image,
                     ],
                     'pickup' => [
