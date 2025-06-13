@@ -259,8 +259,8 @@ class PackageController extends Controller
         $request->validate([
             'pickup_lat' => 'required|numeric',
             'pickup_lng' => 'required|numeric',
-            'drop_lat' => 'required|numeric',
-            'drop_lng' => 'required|numeric',
+            'drop_lat' => 'nullable|numeric',
+            'drop_lng' => 'nullable|numeric',
             'pickup_date' => 'required|date_format:Y-m-d',
             'pickup_time' => 'nullable|date_format:H:i',
             'radius' => 'sometimes|numeric|min:1|max:300', // radius in kilometers, default 100km
@@ -279,15 +279,17 @@ class PackageController extends Controller
                 ) ) AS pickup_distance', 
                 [$request->pickup_lat, $request->pickup_lng, $request->pickup_lat]
             )
-            ->selectRaw('
-                ( 6371000 * acos( cos( radians(?) ) *
-                    cos( radians( drop_lat ) ) *
-                    cos( radians( drop_lng ) - radians(?) ) +
-                    sin( radians(?) ) *
-                    sin( radians( drop_lat ) )
-                ) ) AS drop_distance', 
-                [$request->drop_lat, $request->drop_lng, $request->drop_lat]
-            )
+            ->when($request->has(['drop_lat', 'drop_lng']), function($query) use ($request) {
+                return $query->selectRaw('
+                    ( 6371000 * acos( cos( radians(?) ) *
+                        cos( radians( drop_lat ) ) *
+                        cos( radians( drop_lng ) - radians(?) ) +
+                        sin( radians(?) ) *
+                        sin( radians( drop_lat ) )
+                    ) ) AS drop_distance', 
+                    [$request->drop_lat, $request->drop_lng, $request->drop_lat]
+                );
+            })
             ->whereRaw('
                 ( 6371000 * acos( cos( radians(?) ) *
                     cos( radians( pickup_lat ) ) *
@@ -297,15 +299,17 @@ class PackageController extends Controller
                 ) ) <= ?', 
                 [$request->pickup_lat, $request->pickup_lng, $request->pickup_lat, $radiusInMeters]
             )
-            ->whereRaw('
-                ( 6371000 * acos( cos( radians(?) ) *
-                    cos( radians( drop_lat ) ) *
-                    cos( radians( drop_lng ) - radians(?) ) +
-                    sin( radians(?) ) *
-                    sin( radians( drop_lat ) )
-                ) ) <= ?', 
-                [$request->drop_lat, $request->drop_lng, $request->drop_lat, $radiusInMeters]
-            )
+            ->when($request->has(['drop_lat', 'drop_lng']), function($query) use ($request, $radiusInMeters) {
+                return $query->whereRaw('
+                    ( 6371000 * acos( cos( radians(?) ) *
+                        cos( radians( drop_lat ) ) *
+                        cos( radians( drop_lng ) - radians(?) ) +
+                        sin( radians(?) ) *
+                        sin( radians( drop_lat ) )
+                    ) ) <= ?', 
+                    [$request->drop_lat, $request->drop_lng, $request->drop_lat, $radiusInMeters]
+                );
+            })
             ->where('pickup_date', $request->pickup_date)
             ->when($request->pickup_time, function($query) use ($request) {
                 return $query->where('pickup_time', $request->pickup_time);
@@ -325,7 +329,7 @@ class PackageController extends Controller
                     'price' => $package->price,
                     'status' => $package->status,
                     'pickup_distance' => round($package->pickup_distance / 1000, 2), // Convert to kilometers
-                    'drop_distance' => round($package->drop_distance / 1000, 2), // Convert to kilometers
+                    'drop_distance' => isset($package->drop_distance) ? round($package->drop_distance / 1000, 2) : null, // Convert to kilometers if exists
                     'sender' => [
                         'id' => $package->sender->id,
                         'image' => $package->sender->image,
