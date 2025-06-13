@@ -42,7 +42,16 @@ class OrderCrudController extends CrudController
         // remove preview button 
         $this->crud->denyAccess('show');
         
-        CRUD::column('package_id') -> label('Package') -> entity('package') -> model('App\Models\Package') -> attribute('package_info');
+        CRUD::column('id')->label('ID');
+        CRUD::column('package_id')
+            ->label('Package')
+            ->entity('package')
+            ->model('App\Models\Package')
+            ->type('closure')
+            ->function(function($entry) {
+                return $entry->package ? $entry->package->id . ' - ' . $entry->package->package_info : '-';
+            });
+        //CRUD::column('package_id') -> label('Package') -> entity('package') -> model('App\Models\Package') -> attribute('package_info');
         CRUD::column('dropper_id') -> label('Dropper') -> entity('dropper') -> model('App\User') -> attribute('full_name');
         CRUD::column('status')->wrapper([
             'element' => 'span',

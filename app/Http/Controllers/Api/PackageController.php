@@ -262,8 +262,8 @@ class PackageController extends Controller
             'drop_lat' => 'required|numeric',
             'drop_lng' => 'required|numeric',
             'pickup_date' => 'required|date_format:Y-m-d',
-            'pickup_time' => 'required|date_format:H:i',
-            'radius' => 'sometimes|numeric|min:1|max:100', // radius in kilometers, default 100km
+            'pickup_time' => 'nullable|date_format:H:i',
+            'radius' => 'sometimes|numeric|min:1|max:300', // radius in kilometers, default 100km
         ]);
 
         $radius = $request->input('radius', 100); // Default radius 100km
@@ -307,12 +307,14 @@ class PackageController extends Controller
                 [$request->drop_lat, $request->drop_lng, $request->drop_lat, $radiusInMeters]
             )
             ->where('pickup_date', $request->pickup_date)
-            ->where('pickup_time', $request->pickup_time)
+            ->when($request->pickup_time, function($query) use ($request) {
+                return $query->where('pickup_time', $request->pickup_time);
+            })
             ->where('status', 'active')
             ->whereDoesntHave('order', function($query) {
                 $query->whereIn('status', ['active', 'completed']);
             })
-            ->with('sender:id,image')
+            ->with('sender:id,image,first_name,last_name,mobile')
             ->orderBy('pickup_distance')
             ->get()
             ->map(function ($package) {
@@ -327,14 +329,16 @@ class PackageController extends Controller
                     'sender' => [
                         'id' => $package->sender->id,
                         'image' => $package->sender->image,
+                        'name' => $package->sender->first_name . ' ' . $package->sender->last_name,
+                        'mobile' => $package->sender->mobile,
                     ],
                     'pickup' => [
                         'name' => $package->pickup_name,
                         'mobile' => $package->pickup_mobile,
                         'address' => $package->pickup_address,
                         'details' => $package->pickup_details,
-                        'date' => $package->pickup_date,
-                        'time' => $package->pickup_time,
+                        'date' => date('Y-m-d', strtotime($package->pickup_date)),
+                        'time' => date('H:i', strtotime($package->pickup_time)),
                         'coordinates' => [
                             'lat' => $package->pickup_lat,
                             'lng' => $package->pickup_lng,
