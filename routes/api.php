@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Auth\FacebookController;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\Auth\PhoneAuthController;
 
 
 /*
@@ -49,6 +50,12 @@ Route::delete('/data-deletion', [PrivacyController::class, 'deleteUserData']);
 Route::post('/facebook-data-deletion', [PrivacyController::class, 'handleFacebookDataDeletion']);
 Route::get('/data-deletion-status', [PrivacyController::class, 'checkDeletionStatus']);
 Route::post('/process-pending-deletions', [PrivacyController::class, 'processPendingDeletions']);
+
+// Phone Login
+Route::post('/phone-login', [PhoneAuthController::class, 'login']);
+Route::post('/verify-phone-otp', [PhoneAuthController::class, 'verifyOtp']);
+
+
 
 Route::get('/send_email_quote', function (Request $request) {
     try {
@@ -136,5 +143,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
 });
-
-
