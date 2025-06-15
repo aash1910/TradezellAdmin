@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Auth\FacebookController;
+use App\Http\Controllers\PrivacyController;
 
 
 /*
@@ -37,9 +39,16 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/verify-otp', [OtpController::class, 'verify']);
 Route::post('/resend-otp', [OtpController::class, 'resend']);
 Route::post('/login', [LoginController::class, 'login']);
+Route::post('/facebook-login', [FacebookController::class, 'login']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 Route::get('/faqs', [FaqController::class, 'index']);
+Route::delete('/data-deletion', [PrivacyController::class, 'deleteUserData']);
+
+// Facebook Data Deletion Callback
+Route::post('/facebook-data-deletion', [PrivacyController::class, 'handleFacebookDataDeletion']);
+Route::get('/data-deletion-status', [PrivacyController::class, 'checkDeletionStatus']);
+Route::post('/process-pending-deletions', [PrivacyController::class, 'processPendingDeletions']);
 
 Route::get('/send_email_quote', function (Request $request) {
     try {

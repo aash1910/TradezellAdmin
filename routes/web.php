@@ -13,7 +13,12 @@
 use Illuminate\Http\Request;
 use App\Models\LandingPage;
 use App\Models\Page;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PrivacyController;
 
 Route::get('/', function () {
     return redirect('/admin');
 });
+
+Route::get('/privacy-policy', [PrivacyController::class, 'privacyPolicy']);
+Route::get('/terms-of-service', [PrivacyController::class, 'termsOfService']);

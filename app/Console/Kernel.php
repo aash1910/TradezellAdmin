@@ -4,6 +4,8 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -25,6 +27,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('db:fresh')->hourly();
+        $schedule->call(function () {
+            $response = Http::post(config('app.url') . '/api/process-pending-deletions');
+            Log::info('Processed pending deletions', ['response' => $response->json()]);
+        })->hourly();
     }
 }
