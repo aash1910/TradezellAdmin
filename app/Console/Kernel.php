@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\RefreshDb::class,
+        Commands\ProcessEscrowRefunds::class,
     ];
 
     /**

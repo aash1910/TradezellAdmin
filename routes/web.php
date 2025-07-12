@@ -22,3 +22,7 @@ Route::get('/', function () {
 
 Route::get('/privacy-policy', [PrivacyController::class, 'privacyPolicy']);
 Route::get('/terms-of-service', [PrivacyController::class, 'termsOfService']);
+
+// Stripe Connect wallet routes
+Route::get('/wallet/connect/refresh', [App\Http\Controllers\WalletConnectController::class, 'refresh']);
+Route::get('/wallet/connect/return', [App\Http\Controllers\WalletConnectController::class, 'return']);

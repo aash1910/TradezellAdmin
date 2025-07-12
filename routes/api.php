@@ -19,10 +19,13 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Auth\FacebookController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Auth\PhoneAuthController;
-
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +37,13 @@ use App\Http\Controllers\Auth\PhoneAuthController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::get('/fix-config', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+    return 'Fixed';
+});
 
 // Public routes
 Route::post('/register', [RegisterController::class, 'register']);
@@ -142,4 +152,50 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
+
+    // Payment routes
+    Route::post('/payments/create-intent', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/payments/confirm', [PaymentController::class, 'confirmPayment']);
+    Route::get('/payments/status/{paymentIntentId}', [PaymentController::class, 'getPaymentStatus']);
+    Route::post('/payments/refund', [PaymentController::class, 'requestRefund']);
+    Route::get('/payments/history', [PaymentController::class, 'getPaymentHistory']);
+    Route::get('/payments/package/{packageId}', [PaymentController::class, 'getPackagePayment']);
+    Route::post('/payments/release/{packageId}', [PaymentController::class, 'releasePaymentFromEscrow']);
+
+    // Wallet routes (for droppers)
+    Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
+    Route::get('/wallet/transactions', [WalletController::class, 'getTransactions']);
+    Route::get('/wallet/pending-payments', [WalletController::class, 'getPendingPayments']);
+    Route::post('/wallet/withdraw', [WalletController::class, 'requestWithdrawal']);
+    Route::get('/wallet/withdrawals', [WalletController::class, 'getWithdrawalHistory']);
+    Route::get('/wallet/stripe-account', [WalletController::class, 'getStripeAccountStatus']);
+    Route::post('/wallet/setup-stripe-account', [WalletController::class, 'setupStripeAccount']);
+    Route::get('/wallet/stripe-dashboard', [WalletController::class, 'getStripeDashboardLink']);
+    Route::get('/wallet/minimum-withdrawal', [WalletController::class, 'getMinimumWithdrawalAmount']);
+    Route::get('/wallet/main-account-balance', [WalletController::class, 'getMainStripeAccountBalance']);
+    Route::post('/wallet/release-payment/{orderId}', [WalletController::class, 'releasePayment']);
+});
+
+// Stripe webhook (no authentication required)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+
+// Escrow refund processing endpoint
+Route::get('/escrow/process-refunds', function () {
+    try {
+        $output = Artisan::call('escrow:process-refunds');
+        $result = Artisan::output();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Escrow refund processing completed',
+            'output' => $result,
+            'exit_code' => $output
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to process escrow refunds',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 });

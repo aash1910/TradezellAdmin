@@ -33,6 +33,7 @@ return [
         'model'  => App\User::class,
         'key'    => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
     'facebook' => [
@@ -46,5 +47,7 @@ return [
         'auth_token' => env('TWILIO_AUTH_TOKEN'),
         'verify_service_sid' => env('TWILIO_VERIFY_SERVICE_SID'),
     ],
+
+    'currency' => env('CURRENCY_CODE', 'USD'),
 
 ];

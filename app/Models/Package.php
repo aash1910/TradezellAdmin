@@ -54,6 +54,11 @@ class Package extends Model
         return $this->hasOne(Order::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function getPackageInfoAttribute()
     {
         return $this->pickup_name . ' (' . $this->pickup_address . ') - ' . $this->drop_name . ' (' . $this->drop_address . ') - ' . date('d M Y', strtotime($this->pickup_date)) . ' ' . date('H:i', strtotime($this->pickup_time));
