@@ -26,61 +26,100 @@ class PaymentController extends Controller
     public function createPaymentIntent(Request $request)
     {
         $request->validate([
-            'package_id' => 'required|exists:packages,id',
+            'package_id' => 'nullable|exists:packages,id',
+            'package_data' => 'nullable|array',
             'amount' => 'required|numeric|min:1',
             'currency' => 'required|string|size:3',
         ]);
 
+        // Either package_id or package_data must be provided
+        if (!$request->package_id && !$request->package_data) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Either package_id or package_data is required'
+            ], 422);
+        }
+
         try {
-            $package = Package::findOrFail($request->package_id);
             $user = Auth::user();
+            $package = null;
+            $packageId = null;
 
-            // Check if user owns the package
-            if ($package->sender_id !== $user->id) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Unauthorized access to package'
-                ], 403);
-            }
+            if ($request->package_id) {
+                // Existing package flow
+                $package = Package::findOrFail($request->package_id);
+                
+                // Check if user owns the package
+                if ($package->sender_id !== $user->id) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Unauthorized access to package'
+                    ], 403);
+                }
 
-            // Check if payment already exists
-            $existingPayment = Payment::where('package_id', $package->id)
-                ->where('payment_type', 'escrow')
-                ->where('status', 'succeeded')
-                ->first();
+                // Check if payment already exists
+                $existingPayment = Payment::where('package_id', $package->id)
+                    ->where('payment_type', 'escrow')
+                    ->where('status', 'succeeded')
+                    ->first();
 
-            if ($existingPayment) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Payment already exists for this package'
-                ], 400);
+                if ($existingPayment) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Payment already exists for this package'
+                    ], 400);
+                }
+
+                $packageId = $package->id;
+            } else {
+                // Pre-package payment flow - package will be created after payment
+                $packageId = null;
             }
 
             // Create Stripe Payment Intent
             $currency = config('services.currency');
+            $metadata = [
+                'user_id' => $user->id,
+                'payment_type' => 'escrow'
+            ];
+
+            if ($packageId) {
+                $metadata['package_id'] = $packageId;
+            } else {
+                // Only add minimal info for new package payments
+                if (!empty($request->package_data['pickup_name'])) {
+                    $metadata['pickup_name'] = substr($request->package_data['pickup_name'], 0, 50);
+                }
+                if (!empty($request->package_data['drop_name'])) {
+                    $metadata['drop_name'] = substr($request->package_data['drop_name'], 0, 50);
+                }
+                // Do NOT add the full package_data JSON to metadata
+            }
+
             $paymentIntent = PaymentIntent::create([
                 'amount' => $request->amount,
                 'currency' => $request->currency ? $request->currency : $currency,
-                'metadata' => [
-                    'package_id' => $package->id,
-                    'user_id' => $user->id,
-                    'payment_type' => 'escrow'
-                ],
+                'metadata' => $metadata,
                 'automatic_payment_methods' => [
                     'enabled' => true,
                 ],
             ]);
 
             // Create payment record
-            $payment = Payment::create([
-                'package_id' => $package->id,
+            $paymentData = [
                 'user_id' => $user->id,
                 'stripe_payment_intent_id' => $paymentIntent->id,
                 'amount' => $request->amount / 100, // Convert from cents
                 'currency' => $request->currency ? $request->currency : $currency,
                 'status' => $paymentIntent->status,
                 'payment_type' => 'escrow',
-            ]);
+            ];
+
+            if ($packageId) {
+                $paymentData['package_id'] = $packageId;
+            }
+
+            $payment = Payment::create($paymentData);
 
             return response()->json([
                 'status' => 'success',
@@ -106,6 +145,127 @@ class PaymentController extends Controller
                 'message' => 'Internal server error'
             ], 500);
         }
+    }
+
+    /**
+     * Create package after successful payment
+     */
+    public function createPackageAfterPayment(Request $request)
+    {
+        $request->validate([
+            'payment_intent_id' => 'required|string',
+            'package_data' => 'required|array',
+            'package_data.pickup_name' => 'required|string',
+            'package_data.pickup_mobile' => 'required|string',
+            'package_data.pickup_address' => 'required|string',
+            'package_data.pickup_details' => 'nullable|string',
+            'package_data.weight' => 'required|numeric|min:0.01',
+            'package_data.price' => 'required|numeric|min:0.01',
+            'package_data.pickup_date' => 'required|date|after_or_equal:today',
+            'package_data.pickup_time' => 'required|date_format:H:i',
+            'package_data.drop_name' => 'required|string',
+            'package_data.drop_mobile' => 'required|string',
+            'package_data.drop_address' => 'required|string',
+            'package_data.drop_details' => 'nullable|string',
+            'package_data.pickup_lat' => 'nullable|numeric',
+            'package_data.pickup_lng' => 'nullable|numeric',
+            'package_data.drop_lat' => 'nullable|numeric',
+            'package_data.drop_lng' => 'nullable|numeric',
+        ], $this->getValidationMessages());
+
+        try {
+            $payment = Payment::where('stripe_payment_intent_id', $request->payment_intent_id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if (!$payment) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Payment not found'
+                ], 404);
+            }
+
+            if (strtolower($payment->status) !== 'succeeded') {
+                // Payment not yet succeeded, likely waiting for Stripe webhook
+                return response()->json([
+                    'status' => 'pending',
+                    'message' => 'Payment is processing. Please retry in a few seconds.'
+                ], 202);
+            }
+
+            // Check if package already exists for this payment
+            if ($payment->package_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Package already exists for this payment'
+                ], 400);
+            }
+
+            // Create the package
+            $packageData = $request->package_data;
+            $packageData['sender_id'] = Auth::id();
+            
+            $package = Package::create($packageData);
+            
+            // Update payment record with package_id
+            $payment->update(['package_id' => $package->id]);
+            
+            $package->load('sender:id,image');
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Package created successfully',
+                'data' => [
+                    'id' => $package->id,
+                    'sender' => [
+                        'id' => $package->sender->id,
+                        'image' => $package->sender->image,
+                    ],
+                    'weight' => $package->weight,
+                    'price' => $package->price,
+                    'pickup' => [
+                        'name' => $package->pickup_name,
+                        'mobile' => $package->pickup_mobile,
+                        'address' => $package->pickup_address,
+                        'details' => $package->pickup_details,
+                        'date' => date('Y-m-d', strtotime($package->pickup_date)),
+                        'time' => date('H:i', strtotime($package->pickup_time)),
+                        'coordinates' => [
+                            'lat' => $package->pickup_lat,
+                            'lng' => $package->pickup_lng,
+                        ],
+                    ],
+                    'drop' => [
+                        'name' => $package->drop_name,
+                        'mobile' => $package->drop_mobile,
+                        'address' => $package->drop_address,
+                        'details' => $package->drop_details,
+                        'coordinates' => [
+                            'lat' => $package->drop_lat,
+                            'lng' => $package->drop_lng,
+                        ],
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Package Creation After Payment Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create package after payment'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get custom validation messages
+     */
+    private function getValidationMessages()
+    {
+        return [
+            'package_data.pickup_date.after_or_equal' => 'The pickup date must be today or a future date',
+            'package_data.pickup_time.date_format' => 'The pickup time must be in 24-hour format (HH:mm)',
+        ];
     }
 
     /**
@@ -212,11 +372,14 @@ class PaymentController extends Controller
         ]);
 
         try {
-            $package = Package::findOrFail($request->package_id);
+            $package = Package::with('order.dropper')->findOrFail($request->package_id);
             $user = Auth::user();
 
-            // Check if user owns the package
-            if ($package->sender_id !== $user->id) {
+            // Check if user is either the sender or the assigned dropper
+            $isSender = $package->sender_id === $user->id;
+            $isDropper = $package->order && $package->order->dropper_id === $user->id;
+            
+            if (!$isSender && !$isDropper) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthorized access to package'
@@ -253,7 +416,7 @@ class PaymentController extends Controller
                 'payment_intent' => $escrowPayment->stripe_payment_intent_id,
                 'metadata' => [
                     'package_id' => $package->id,
-                    'user_id' => $user->id,
+                    'user_id' => $package->sender_id, // Always use sender's ID for refund
                     'reason' => $request->reason ?? 'No dropper assigned',
                 ],
             ]);
@@ -261,7 +424,7 @@ class PaymentController extends Controller
             // Create refund payment record
             $refundPayment = Payment::create([
                 'package_id' => $package->id,
-                'user_id' => $user->id,
+                'user_id' => $package->sender_id, // Always use sender's ID for refund
                 'stripe_payment_intent_id' => $refund->id,
                 'amount' => -$escrowPayment->amount, // Negative amount for refund
                 'currency' => $escrowPayment->currency,

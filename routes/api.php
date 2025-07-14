@@ -156,6 +156,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Payment routes
     Route::post('/payments/create-intent', [PaymentController::class, 'createPaymentIntent']);
     Route::post('/payments/confirm', [PaymentController::class, 'confirmPayment']);
+    Route::post('/payments/create-package', [PaymentController::class, 'createPackageAfterPayment']);
     Route::get('/payments/status/{paymentIntentId}', [PaymentController::class, 'getPaymentStatus']);
     Route::post('/payments/refund', [PaymentController::class, 'requestRefund']);
     Route::get('/payments/history', [PaymentController::class, 'getPaymentHistory']);
