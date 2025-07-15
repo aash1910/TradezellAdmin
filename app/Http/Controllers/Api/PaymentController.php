@@ -158,6 +158,8 @@ class PaymentController extends Controller
             'package_data.pickup_name' => 'required|string',
             'package_data.pickup_mobile' => 'required|string',
             'package_data.pickup_address' => 'required|string',
+            'package_data.pickup_address2' => 'nullable|string',
+            'package_data.pickup_address3' => 'nullable|string',
             'package_data.pickup_details' => 'nullable|string',
             'package_data.weight' => 'required|numeric|min:0.01',
             'package_data.price' => 'required|numeric|min:0.01',
@@ -166,11 +168,22 @@ class PaymentController extends Controller
             'package_data.drop_name' => 'required|string',
             'package_data.drop_mobile' => 'required|string',
             'package_data.drop_address' => 'required|string',
+            'package_data.drop_address2' => 'nullable|string',
+            'package_data.drop_address3' => 'nullable|string',
             'package_data.drop_details' => 'nullable|string',
             'package_data.pickup_lat' => 'nullable|numeric',
             'package_data.pickup_lng' => 'nullable|numeric',
+            'package_data.pickup_lat2' => 'nullable|numeric',
+            'package_data.pickup_lng2' => 'nullable|numeric',
+            'package_data.pickup_lat3' => 'nullable|numeric',
+            'package_data.pickup_lng3' => 'nullable|numeric',
             'package_data.drop_lat' => 'nullable|numeric',
             'package_data.drop_lng' => 'nullable|numeric',
+            'package_data.drop_lat2' => 'nullable|numeric',
+            'package_data.drop_lng2' => 'nullable|numeric',
+            'package_data.drop_lat3' => 'nullable|numeric',
+            'package_data.drop_lng3' => 'nullable|numeric',
+            'package_data.pickup_image' => 'nullable|string',
         ], $this->getValidationMessages());
 
         try {
@@ -203,6 +216,8 @@ class PaymentController extends Controller
 
             // Create the package
             $packageData = $request->package_data;
+            Log::info('Package data received in createPackageAfterPayment:', $packageData);
+            
             $packageData['sender_id'] = Auth::id();
             
             $package = Package::create($packageData);
@@ -227,22 +242,35 @@ class PaymentController extends Controller
                         'name' => $package->pickup_name,
                         'mobile' => $package->pickup_mobile,
                         'address' => $package->pickup_address,
+                        'address2' => $package->pickup_address2,
+                        'address3' => $package->pickup_address3,
                         'details' => $package->pickup_details,
                         'date' => date('Y-m-d', strtotime($package->pickup_date)),
                         'time' => date('H:i', strtotime($package->pickup_time)),
+                        'image' => $package->pickup_image,
                         'coordinates' => [
                             'lat' => $package->pickup_lat,
                             'lng' => $package->pickup_lng,
+                            'lat2' => $package->pickup_lat2,
+                            'lng2' => $package->pickup_lng2,
+                            'lat3' => $package->pickup_lat3,
+                            'lng3' => $package->pickup_lng3,
                         ],
                     ],
                     'drop' => [
                         'name' => $package->drop_name,
                         'mobile' => $package->drop_mobile,
                         'address' => $package->drop_address,
+                        'address2' => $package->drop_address2,
+                        'address3' => $package->drop_address3,
                         'details' => $package->drop_details,
                         'coordinates' => [
                             'lat' => $package->drop_lat,
                             'lng' => $package->drop_lng,
+                            'lat2' => $package->drop_lat2,
+                            'lng2' => $package->drop_lng2,
+                            'lat3' => $package->drop_lat3,
+                            'lng3' => $package->drop_lng3,
                         ],
                     ]
                 ]

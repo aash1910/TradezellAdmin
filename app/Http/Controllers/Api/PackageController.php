@@ -368,4 +368,56 @@ class PackageController extends Controller
             'data' => $packages
         ]);
     }
+
+    /**
+     * Upload pickup image for a package
+     * @author Ashraful Islam
+     */
+    public function uploadPickupImage(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'package_id' => 'required|exists:packages,id',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        $package = Package::where('id', $request->package_id)
+            ->where('sender_id', $user->id)
+            ->first();
+
+        if (!$package) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized or package not found',
+            ], 403);
+        }
+
+        $file = $request->file('image');
+        $extension = $file->getClientOriginalExtension();
+        $image = \Intervention\Image\Facades\Image::make($file);
+        $image->resize(800, null, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+        $base64Image = 'data:image/' . $extension . ';base64,' . base64_encode($image->encode($extension, 90)->encoded);
+
+        $package->pickup_image = $base64Image;
+        $package->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pickup image uploaded successfully',
+            'data' => [
+                'pickup_image' => $package->pickup_image,
+            ]
+        ]);
+    }
 } 

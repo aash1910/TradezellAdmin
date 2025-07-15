@@ -134,6 +134,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/packages/my-packages', [PackageController::class, 'myPackages']);
     Route::patch('/packages/{id}/cancel', [PackageController::class, 'cancel']);
     Route::get('/packages/search', [PackageController::class, 'searchPackages']);
+    Route::post('/packages/upload-pickup-image', [PackageController::class, 'uploadPickupImage']);
 
     // Order routes
     Route::post('/orders', [OrderController::class, 'store']);
