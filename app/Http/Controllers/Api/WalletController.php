@@ -604,14 +604,29 @@ class WalletController extends Controller
             }
 
             // Create release payment record
+            $riderAmount = round($escrowPayment->amount * 0.908, 2); // 90.8% to rider
+            $commissionAmount = round($escrowPayment->amount * 0.092, 2); // 9.2% commission
+
             $releasePayment = Payment::create([
                 'package_id' => $order->package_id,
                 'user_id' => $order->dropper_id,
                 'stripe_payment_intent_id' => 'release_' . $escrowPayment->stripe_payment_intent_id,
-                'amount' => $escrowPayment->amount,
+                'amount' => $riderAmount,
                 'currency' => $escrowPayment->currency,
                 'status' => 'succeeded',
                 'payment_type' => 'release',
+                'processed_at' => now(),
+            ]);
+
+            // Record platform commission (optional, for tracking)
+            Payment::create([
+                'package_id' => $order->package_id,
+                'user_id' => 1, // or platform user ID if you have one
+                'stripe_payment_intent_id' => 'commission_' . $escrowPayment->stripe_payment_intent_id,
+                'amount' => $commissionAmount,
+                'currency' => $escrowPayment->currency,
+                'status' => 'succeeded',
+                'payment_type' => 'commission',
                 'processed_at' => now(),
             ]);
 
