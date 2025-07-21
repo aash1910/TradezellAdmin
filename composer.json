@@ -28,7 +28,8 @@
         "laravel/sanctum": "^2.15",
         "laravel/socialite": "^5.21",
         "twilio/sdk": "^8.6",
-        "stripe/stripe-php": "^17.4"
+        "stripe/stripe-php": "^17.4",
+        "google/apiclient": "^2.16"
     },
     "require-dev": {
         "fakerphp/faker": "~1.4",

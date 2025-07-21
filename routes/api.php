@@ -26,6 +26,9 @@ use App\Http\Controllers\Auth\FacebookController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use Illuminate\Support\Facades\Artisan;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +68,8 @@ Route::post('/process-pending-deletions', [PrivacyController::class, 'processPen
 Route::post('/phone-login', [PhoneAuthController::class, 'login']);
 Route::post('/verify-phone-otp', [PhoneAuthController::class, 'verifyOtp']);
 
+// Google Login
+Route::post('/google-login', [LoginController::class, 'googleLogin']);
 
 
 Route::get('/send_email_quote', function (Request $request) {
