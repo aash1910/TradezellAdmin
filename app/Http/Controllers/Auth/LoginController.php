@@ -9,6 +9,7 @@ use App\User;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class LoginController extends Controller
 {
@@ -86,15 +87,22 @@ class LoginController extends Controller
             // Find or create user
             $user = \App\User::where('email', $email)->first();
             if (!$user) {
-                $user = \App\User::create([
+                $userData = [
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $email,
-                    'image' => $image,
                     'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
                     'is_verified' => 1,
                     'status' => 'active',
-                ]);
+                ];
+
+                // Add profile picture if available
+                if ($image) {
+                    $userData['image'] = $this->downloadAndConvertImage($image);
+                }
+
+                $user = \App\User::create($userData);
+                
                 // Assign role
                 $roleName = $request->role ?? 'user';
                 $role = \Spatie\Permission\Models\Role::where('name', $roleName)->first();
@@ -102,6 +110,11 @@ class LoginController extends Controller
                     $user->assignRole($role);
                 }
             } else {
+                // Update profile picture if not set and available
+                if (!$user->image && $image) {
+                    $user->update(['image' => $this->downloadAndConvertImage($image)]);
+                }
+
                 // Check role if provided
                 if ($request->has('role') && !$user->roles->contains('name', $request->role)) {
                     return response()->json(['message' => 'User does not have the specified role'], 403);
@@ -136,5 +149,42 @@ class LoginController extends Controller
         }
     }
 
-    
+    /**
+     * Download image from URL and convert to base64 format
+     * 
+     * @param string $url
+     * @return string|null
+     */
+    private function downloadAndConvertImage($url)
+    {
+        try {
+            // Download the image
+            $response = Http::timeout(10)->get($url);
+            
+            if ($response->successful()) {
+                $imageData = $response->body();
+                $mimeType = $response->header('Content-Type');
+                
+                // Validate that it's an image
+                if (strpos($mimeType, 'image/') === 0) {
+                    // Convert to base64
+                    $base64 = base64_encode($imageData);
+                    $extension = explode('/', $mimeType)[1];
+                    
+                    // Return in the format expected by the User model
+                    return "data:{$mimeType};base64,{$base64}";
+                }
+            }
+            
+            \Log::warning('Failed to download Google profile picture', ['url' => $url]);
+            return null;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error downloading Google profile picture', [
+                'url' => $url,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
 }
