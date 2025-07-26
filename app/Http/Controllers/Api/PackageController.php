@@ -300,7 +300,7 @@ class PackageController extends Controller
             'pickup_lng' => 'required|numeric',
             'drop_lat' => 'nullable|numeric',
             'drop_lng' => 'nullable|numeric',
-            'pickup_date' => 'required|date_format:Y-m-d',
+            'pickup_date' => 'nullable|date_format:Y-m-d',
             'pickup_time' => 'nullable|date_format:H:i',
             'radius' => 'sometimes|numeric|min:1|max:300', // radius in kilometers, default 100km
         ]);
@@ -349,7 +349,12 @@ class PackageController extends Controller
                     [$request->drop_lat, $request->drop_lng, $request->drop_lat, $radiusInMeters]
                 );
             })
-            ->where('pickup_date', $request->pickup_date)
+            ->when($request->pickup_date, function($query) use ($request) {
+                return $query->where('pickup_date', $request->pickup_date);
+            }, function($query) {
+                // If no pickup_date provided, get packages from today onwards
+                return $query->where('pickup_date', '>=', date('Y-m-d'));
+            })
             ->when($request->pickup_time, function($query) use ($request) {
                 return $query->where('pickup_time', $request->pickup_time);
             })
@@ -358,6 +363,7 @@ class PackageController extends Controller
                 $query->whereIn('status', ['active', 'completed']);
             })
             ->with('sender:id,image,first_name,last_name,mobile')
+            ->orderBy('pickup_date', 'asc')
             ->orderBy('pickup_distance')
             ->get()
             ->map(function ($package) {
