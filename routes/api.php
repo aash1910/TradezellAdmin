@@ -67,6 +67,7 @@ Route::post('/process-pending-deletions', [PrivacyController::class, 'processPen
 // Phone Login
 Route::post('/phone-login', [PhoneAuthController::class, 'login']);
 Route::post('/verify-phone-otp', [PhoneAuthController::class, 'verifyOtp']);
+Route::post('/check-phone-exists', [PhoneAuthController::class, 'checkPhoneExists']);
 
 // Google Login
 Route::post('/google-login', [LoginController::class, 'googleLogin']);

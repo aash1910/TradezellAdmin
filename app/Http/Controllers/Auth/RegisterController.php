@@ -23,6 +23,7 @@ class RegisterController extends Controller
             'nationality' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'string', 'in:male,female,other,Male,Female,Other'],
             'role' => ['required', 'string', 'exists:roles,name'],
+            'mobile' => ['sometimes', 'string', 'regex:/^\+?[1-9]\d{1,14}$/', 'unique:users,mobile'],
         ]);
 
         if ($validator->fails()) {
@@ -33,6 +34,15 @@ class RegisterController extends Controller
             ], 422);
         }
 
+        // Clean mobile number if provided
+        $mobile = null;
+        if ($request->has('mobile') && $request->mobile) {
+            $mobile = preg_replace('/\s+/', '', $request->mobile);
+            if (!str_starts_with($mobile, '+')) {
+                $mobile = '+' . $mobile;
+            }
+        }
+
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -40,6 +50,7 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'nationality' => $request->nationality,
             'gender' => ($request->gender == 'male' || $request->gender == 'Male') ? 'male' : (($request->gender == 'female' || $request->gender == 'Female') ? 'female' : 'other'),
+            'mobile' => $mobile,
             'status' => 'active',
         ]);
 

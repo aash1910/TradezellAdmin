@@ -253,4 +253,48 @@ class PhoneAuthController extends Controller
             ], 500);
         }
     }
+
+    public function checkPhoneExists(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'phone' => 'required|string|regex:/^\+?[1-9]\d{1,14}$/'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'error' => $validator->errors()->first()
+                ], 422);
+            }
+
+            // Clean phone number (remove spaces and ensure it starts with +)
+            $mobile = preg_replace('/\s+/', '', $request->phone);
+            if (!str_starts_with($mobile, '+')) {
+                $mobile = '+' . $mobile;
+            }
+
+            Log::info('Checking phone existence:', [
+                'original_phone' => $request->phone,
+                'formatted_phone' => $mobile
+            ]);
+
+            // Check if user exists with this phone number
+            $user = User::where('mobile', $mobile)->first();
+            
+            return response()->json([
+                'exists' => $user ? true : false,
+                'phone' => $mobile
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Check Phone Exists Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'An error occurred while checking phone number.',
+                'exists' => false
+            ], 500);
+        }
+    }
 } 

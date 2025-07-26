@@ -21,16 +21,32 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        // Validate that either email or phone is provided
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required_without:phone|email',
+            'phone' => 'required_without:email|string|regex:/^\+?[1-9]\d{1,14}$/',
             'password' => 'required|string',
             'role' => 'sometimes|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        // Determine if we're using email or phone for login
+        $isPhoneLogin = $request->has('phone');
+        
+        if ($isPhoneLogin) {
+            // Clean phone number
+            $mobile = preg_replace('/\s+/', '', $request->phone);
+            if (!str_starts_with($mobile, '+')) {
+                $mobile = '+' . $mobile;
+            }
+            
+            $user = User::where('mobile', $mobile)->first();
+        } else {
+            $user = User::where('email', $request->email)->first();
+        }
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid email or password'], 401);
+            $errorMessage = $isPhoneLogin ? 'Invalid phone number or password' : 'Invalid email or password';
+            return response()->json(['message' => $errorMessage], 401);
         }
 
         // Check role if provided
