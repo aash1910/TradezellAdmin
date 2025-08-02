@@ -22,7 +22,7 @@ class FacebookController extends Controller
             $request->validate([
                 'id' => 'required|string',
                 'name' => 'required|string',
-                'email' => 'required|email',
+                'email' => 'nullable|email', // Made nullable since unverified Facebook apps can't access email
                 'picture' => 'nullable|string|url',
                 'role' => 'required|string|in:dropper,sender',
                 'remember' => 'boolean'
@@ -44,8 +44,8 @@ class FacebookController extends Controller
             // Check if user exists by Facebook ID first
             $user = User::where('facebook_id', $facebookId)->first();
 
-            // If not found by Facebook ID, check by email
-            if (!$user) {
+            // If not found by Facebook ID and email is provided, check by email
+            if (!$user && !empty($email)) {
                 $user = User::where('email', $email)->first();
             }
 
@@ -55,10 +55,16 @@ class FacebookController extends Controller
                 $firstName = $nameParts[0] ?? '';
                 $lastName = $nameParts[1] ?? '';
 
+                // Generate a unique email if not provided
+                $userEmail = $email;
+                if (empty($userEmail)) {
+                    $userEmail = $facebookId . '@facebook.com';
+                }
+
                 $userData = [
                     'first_name' => $firstName,
                     'last_name' => $lastName,
-                    'email' => $email,
+                    'email' => $userEmail,
                     'password' => Hash::make(Str::random(24)),
                     'is_verified' => 1,
                     'status' => 'active',
