@@ -305,7 +305,7 @@ class PackageController extends Controller
             'radius' => 'sometimes|numeric|min:1|max:500', // radius in kilometers, default 100km
         ]);
 
-        $radius = $request->input('radius', 500); // Default radius 100km
+        $radius = $request->input('radius', 1000); // Default radius 100km
         $radiusInMeters = $radius * 1000;
 
         $packages = Package::select('*')

@@ -30,4 +30,16 @@ Route::group([
     Route::crud('faq', 'FaqCrudController');
 
     Route::crud('user', 'UserCrudController');
+    
+    // -----
+    // Messaging Routes
+    // -----
+    Route::get('message-test', 'MessageCrudController@testDatabase')->name('backpack.message.test');
+    Route::get('message-crud-test', 'MessageCrudController@testCrud')->name('backpack.message.crud-test');
+    Route::get('message-conversations', 'MessageCrudController@conversations')->name('backpack.message.conversations');
+    Route::get('message-conversation/{userId}', 'MessageCrudController@showConversation')->name('backpack.message.conversation');
+    Route::post('message-send', 'MessageCrudController@sendMessage')->name('backpack.message.send');
+    Route::get('message-messages/{userId}', 'MessageCrudController@getMessages')->name('backpack.message.messages');
+    Route::get('message-cleanup-images', 'MessageCrudController@cleanupExternalImages')->name('backpack.message.cleanup-images');
+    Route::crud('message', 'MessageCrudController');
 }); // this should be the absolute last line of this file
