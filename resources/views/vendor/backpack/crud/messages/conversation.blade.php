@@ -507,7 +507,7 @@ $(document).ready(function() {
     });
     
     // Auto-refresh messages every 10 seconds
-    setInterval(refreshMessages, 10000);
+    setInterval(refreshMessages, 5000);
 });
 
 function sendMessage() {
@@ -578,9 +578,9 @@ function refreshMessages() {
         url: '{{ route("backpack.message.messages", $user->id) }}',
         method: 'GET',
         success: function(response) {
-            if (response.status === 'success') {
-                updateMessagesUI(response.messages);
-            }
+            //if (response.status === 'success') {
+                updateMessagesUI(response);
+            //}
         },
         error: function(xhr) {
             console.error('Error refreshing messages:', xhr);
@@ -612,9 +612,9 @@ function updateMessagesUI(messages) {
         }
         
         // Scroll to bottom if user is at bottom
-        if (isAtBottom()) {
+        //if (isAtBottom()) {
             scrollToBottom();
-        }
+        //}
     }
 }
 
