@@ -53,7 +53,8 @@ class MessageController extends Controller
                             'mobile' => $otherUser->mobile,
                             'last_message' => $lastMessage->message,
                             'last_message_time' => $lastMessage->created_at,
-                            'is_support' => $otherUser->id == 1
+                            'is_support' => $otherUser->id == 1,
+                            'unread_count' => $this->getUnreadCount($user->id, $otherUserId)
                         ];
                     }
                 }
@@ -69,7 +70,8 @@ class MessageController extends Controller
                     'mobile' => null,
                     'last_message' => 'Welcome to PiqDrop Support! How can we help you today?',
                     'last_message_time' => now(),
-                    'is_support' => true
+                    'is_support' => true,
+                    'unread_count' => $this->getUnreadCount($user->id, 1)
                 ];
             }
 
@@ -135,5 +137,48 @@ class MessageController extends Controller
             'status' => 'success',
             'message' => $message
         ]);
+    }
+
+    /**
+     * Get unread message count for a conversation between two users
+     */
+    private function getUnreadCount($currentUserId, $otherUserId)
+    {
+        try {
+            return Message::where('sender_id', $otherUserId)
+                         ->where('receiver_id', $currentUserId)
+                         ->where('is_read', false)
+                         ->count();
+        } catch (\Exception $e) {
+            // If is_read column doesn't exist yet, return 0
+            return 0;
+        }
+    }
+
+    /**
+     * Mark messages as read for a conversation
+     */
+    public function markMessagesAsRead(Request $request, $userId)
+    {
+        try {
+            $currentUser = $request->user();
+            
+            // Mark all unread messages from the other user as read
+            $updatedCount = Message::where('sender_id', $userId)
+                                  ->where('receiver_id', $currentUser->id)
+                                  ->where('is_read', false)
+                                  ->update(['is_read' => true]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Messages marked as read',
+                'updated_count' => $updatedCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Server Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

@@ -154,6 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/conversations', [MessageController::class, 'getConversations']);
     Route::get('/messages/{userId}', [MessageController::class, 'getMessages']);
     Route::post('/messages', [MessageController::class, 'sendMessage']);
+    Route::post('/messages/{userId}/mark-read', [MessageController::class, 'markMessagesAsRead']);
 
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index']);
