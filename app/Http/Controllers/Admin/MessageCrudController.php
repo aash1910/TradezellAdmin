@@ -366,6 +366,31 @@ class MessageCrudController extends CrudController
     }
 
     /**
+     * Mark messages as read for a conversation
+     */
+    public function markMessagesAsRead($userId)
+    {
+        try {
+            // Mark all unread messages from the user to admin as read
+            Message::where('sender_id', $userId)
+                   ->where('receiver_id', 1)
+                   ->where('is_read', false)
+                   ->update(['is_read' => true]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Messages marked as read'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking messages as read: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to mark messages as read'
+            ], 500);
+        }
+    }
+
+    /**
      * Get users by role for filtering
      */
     public function getUsersByRole($role)

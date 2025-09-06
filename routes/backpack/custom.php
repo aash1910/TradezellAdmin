@@ -39,6 +39,7 @@ Route::group([
     Route::get('message-conversations', 'MessageCrudController@conversations')->name('backpack.message.conversations');
     Route::get('message-conversation/{userId}', 'MessageCrudController@showConversation')->name('backpack.message.conversation');
     Route::post('message-send', 'MessageCrudController@sendMessage')->name('backpack.message.send');
+    Route::post('message-mark-read/{userId}', 'MessageCrudController@markMessagesAsRead')->name('backpack.message.mark-read');
     Route::get('message-messages/{userId}', 'MessageCrudController@getMessages')->name('backpack.message.messages');
     Route::get('message-cleanup-images', 'MessageCrudController@cleanupExternalImages')->name('backpack.message.cleanup-images');
     Route::crud('message', 'MessageCrudController');

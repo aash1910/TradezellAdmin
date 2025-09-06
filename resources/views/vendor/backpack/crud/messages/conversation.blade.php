@@ -479,6 +479,9 @@
 @push('after_scripts')
 <script>
 $(document).ready(function() {
+    // Mark messages as read when conversation is opened
+    markMessagesAsRead();
+    
     // Scroll to bottom of messages
     scrollToBottom();
     
@@ -543,6 +546,9 @@ function sendMessage() {
                 
                 // Show success message
                 showAlert('Message sent successfully!', 'success');
+                
+                // Update parent window's conversations list
+                updateParentConversationsList();
             }
         },
         error: function(xhr) {
@@ -580,6 +586,8 @@ function refreshMessages() {
         success: function(response) {
             //if (response.status === 'success') {
                 updateMessagesUI(response);
+                // Mark any new unread messages as read
+                markNewMessagesAsRead(response);
             //}
         },
         error: function(xhr) {
@@ -638,6 +646,59 @@ function formatTime(timestamp) {
         minute: '2-digit',
         hour12: true
     });
+}
+
+function markMessagesAsRead() {
+    $.ajax({
+        url: '{{ route("backpack.message.mark-read", $user->id) }}',
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            console.log('Messages marked as read successfully');
+            // Update parent window's conversations list
+            updateParentConversationsList();
+        },
+        error: function(xhr) {
+            console.error('Error marking messages as read:', xhr);
+        }
+    });
+}
+
+function markNewMessagesAsRead(messages) {
+    // Check if there are any unread messages from the user
+    const hasUnreadMessages = messages.some(message => 
+        message.sender_id == {{ $user->id }} && 
+        message.receiver_id == 1 && 
+        message.is_read == false
+    );
+    
+    if (hasUnreadMessages) {
+        // Mark all unread messages as read
+        $.ajax({
+            url: '{{ route("backpack.message.mark-read", $user->id) }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                console.log('New messages marked as read successfully');
+                // Update parent window's conversations list
+                updateParentConversationsList();
+            },
+            error: function(xhr) {
+                console.error('Error marking new messages as read:', xhr);
+            }
+        });
+    }
+}
+
+function updateParentConversationsList() {
+    // Update the conversations list in the parent window
+    if (window.opener && typeof window.opener.loadConversations === 'function') {
+        window.opener.loadConversations();
+    }
 }
 
 function showAlert(message, type = 'info') {

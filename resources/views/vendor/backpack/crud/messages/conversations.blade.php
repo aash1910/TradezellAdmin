@@ -330,8 +330,8 @@ $(document).ready(function() {
     
     loadConversations();
     
-    // Refresh conversations every 30 seconds
-    setInterval(loadConversations, 30000);
+    // Refresh conversations every 5 seconds
+    setInterval(loadConversations, 5000);
 });
 
 function initializeAvatarStates() {
@@ -500,7 +500,16 @@ function displayConversations(conversations) {
 
 function openConversation(userId, userName) {
     const url = '{{ route("backpack.message.conversation", ":userId") }}'.replace(':userId', userId);
-    window.open(url, '_blank');
+    const newWindow = window.open(url, '_blank');
+    
+    // Listen for the window to close and refresh conversations
+    const checkClosed = setInterval(function() {
+        if (newWindow.closed) {
+            clearInterval(checkClosed);
+            // Refresh conversations list to update unread counts
+            loadConversations();
+        }
+    }, 1000);
 }
 
 function updateTotalCount(count) {
