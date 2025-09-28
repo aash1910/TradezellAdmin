@@ -161,6 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
+    Route::post('/notifications/sync-packages', [NotificationController::class, 'syncNearbyPackages']);
 
     // Payment routes
     Route::post('/payments/create-intent', [PaymentController::class, 'createPaymentIntent']);

@@ -6,18 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Package;
+use App\User;
 
 class NotificationController extends Controller
 {
     public function index()
     {
-        // Get user's personal notifications
+        // Get user's personal unread notifications
         $userNotifications = Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get admin's notifications (common for all users)
+        // Get admin's unread notifications (common for all users)
         $adminNotifications = Notification::where('user_id', 1)
+            ->where('is_read', false)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -353,5 +357,202 @@ class NotificationController extends Controller
                 'expiry_date' => $expiryDate
             ]
         ]);
+    }
+
+    // Package Available for Riders
+    public static function createPackageAvailableNotification($userId, $packageId, $price, $pickupDistance, $dropoffDistance, $pickupAddress, $dropoffAddress)
+    {
+        // Ensure distances are properly rounded to 2 decimal places
+        $pickupDistance = round($pickupDistance, 2);
+        $dropoffDistance = $dropoffDistance ? round($dropoffDistance, 2) : null;
+        
+        $description = $dropoffDistance 
+            ? "Package nearby - $" . $price . " (Pickup: " . $pickupDistance . "km, Dropoff: " . $dropoffDistance . "km)"
+            : "Package nearby - $" . $price . " (Distance: " . $pickupDistance . "km)";
+            
+        return Notification::create([
+            'user_id' => $userId,
+            'type' => 'package_available',
+            'title' => 'New Package Available',
+            'description' => $description,
+            'data' => [
+                'package_id' => $packageId,
+                'price' => $price,
+                'pickup_distance' => $pickupDistance,
+                'dropoff_distance' => $dropoffDistance,
+                'pickup_address' => $pickupAddress,
+                'dropoff_address' => $dropoffAddress
+            ]
+        ]);
+    }
+
+    /**
+     * Sync nearby packages and create notifications for rider
+     * Called when rider opens notification page
+     * Uses rider's current location (similar to getPackagesByRiderLocation in index.tsx)
+     */
+    public function syncNearbyPackages(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Check if user is a rider
+        if (!$user->hasRole("dropper")) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only droppers can sync packages'
+            ], 403);
+        }
+
+        // Validate request has current location
+        $request->validate([
+            'pickup_lat' => 'required|numeric',
+            'pickup_lng' => 'required|numeric',
+        ]);
+
+        try {
+            $riderLat = $request->pickup_lat;
+            $riderLng = $request->pickup_lng;
+            $radius = 1000; // 100km radius (same as in PackageController searchPackages)
+            $radiusInMeters = $radius * 1000;
+
+            // Get existing package notifications to avoid duplicates
+            $existingPackageIds = Notification::where('user_id', $user->id)
+                ->where('type', 'package_available')
+                ->get()
+                ->pluck('data')
+                ->map(function($data) {
+                    // Check if data is already an array (Laravel auto-decodes JSON columns)
+                    $decoded = is_array($data) ? $data : json_decode($data, true);
+                    return $decoded['package_id'] ?? null;
+                })
+                ->filter()
+                ->toArray();
+
+            // Find nearby packages using the same logic as PackageController searchPackages
+            $packages = Package::select('*')
+                ->selectRaw('
+                    ( 6371000 * acos( cos( radians(?) ) *
+                        cos( radians( pickup_lat ) ) *
+                        cos( radians( pickup_lng ) - radians(?) ) +
+                        sin( radians(?) ) *
+                        sin( radians( pickup_lat ) )
+                    ) ) AS pickup_distance', 
+                    [$riderLat, $riderLng, $riderLat]
+                )
+                ->whereRaw('
+                    ( 6371000 * acos( cos( radians(?) ) *
+                        cos( radians( pickup_lat ) ) *
+                        cos( radians( pickup_lng ) - radians(?) ) +
+                        sin( radians(?) ) *
+                        sin( radians( pickup_lat ) )
+                    ) ) <= ?', 
+                    [$riderLat, $riderLng, $riderLat, $radiusInMeters]
+                )
+                ->where('status', 'active')
+                ->whereDoesntHave('order', function($query) {
+                    $query->whereIn('status', ['active', 'completed']);
+                })
+                ->where('pickup_date', '>=', date('Y-m-d'))
+                ->whereNotIn('id', $existingPackageIds) // Exclude packages that already have notifications
+                ->with('sender:id,image,first_name,last_name,mobile')
+                ->orderBy('pickup_date', 'asc')
+                ->orderBy('pickup_distance')
+                ->get();
+
+            $newNotifications = 0;
+
+            // Only process if we have packages
+            if ($packages && $packages->count() > 0) {
+                foreach ($packages as $package) {
+                    // Create notification for nearby package
+                    $pickupDistanceKm = round($package->pickup_distance / 1000, 2);
+                    
+                    self::createPackageAvailableNotification(
+                        $user->id,
+                        $package->id,
+                        $package->price,
+                        $pickupDistanceKm, // Distance in km (properly rounded)
+                        null, // No dropoff distance since we're only checking pickup
+                        $package->pickup_address,
+                        $package->drop_address
+                    );
+                    $newNotifications++;
+                }
+            }
+
+            // Get all unread notifications after sync
+            $userNotifications = Notification::where('user_id', $user->id)
+                ->where('is_read', false)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Get admin's unread notifications (common for all users)
+            $adminNotifications = Notification::where('user_id', 1)
+                ->where('is_read', false)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Combine and format all notifications
+            $allNotifications = collect(); // Initialize as empty collection
+            
+            if ($userNotifications || $adminNotifications) {
+                $allNotifications = $userNotifications->concat($adminNotifications)
+                    ->sortByDesc('created_at')
+                    ->map(function ($notification) {
+                        return [
+                            'id' => $notification->id,
+                            'title' => $notification->title,
+                            'description' => $notification->description,
+                            'date' => $notification->created_at->format('Y-m-d'),
+                            'time' => $notification->created_at->format('h:i A'),
+                            'isNew' => !$notification->is_read,
+                            'type' => $notification->type,
+                            'isAdminNotification' => $notification->user_id === 1
+                        ];
+                    })
+                    ->values();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Package sync completed',
+                'new_notifications' => $newNotifications,
+                'notifications' => $allNotifications->toArray() // Ensure it's an array
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the full error for debugging
+            \Log::error('Sync packages error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error syncing packages: ' . $e->getMessage(),
+                'debug' => config('app.debug') ? [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ] : null
+            ], 500);
+        }
+    }
+
+    /**
+     * Calculate distance between two coordinates using Haversine formula
+     * Returns distance in meters
+     */
+    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    {
+        $earthRadius = 6371000; // Earth's radius in meters
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+
+        $a = sin($dLat/2) * sin($dLat/2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLng/2) * sin($dLng/2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+        return $earthRadius * $c;
     }
 } 
