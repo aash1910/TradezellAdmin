@@ -54,6 +54,12 @@ return [
         'verify_service_sid' => env('TWILIO_VERIFY_SERVICE_SID'),
     ],
 
+    'firebase' => [
+        'api_key' => env('FIREBASE_API_KEY'),
+        'project_id' => env('FIREBASE_PROJECT_ID', 'piqdrop-644ce'),
+        'credentials' => storage_path('app/firebase/firebase_credentials.json'),
+    ],
+
     'currency' => env('CURRENCY_CODE', 'USD'),
 
 ];

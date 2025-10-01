@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\FirebasePhoneAuthController;
 use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\OrderController;
@@ -64,10 +65,15 @@ Route::post('/facebook-data-deletion', [PrivacyController::class, 'handleFaceboo
 Route::get('/data-deletion-status', [PrivacyController::class, 'checkDeletionStatus']);
 Route::post('/process-pending-deletions', [PrivacyController::class, 'processPendingDeletions']);
 
-// Phone Login
+// Phone Login (Twilio)
 Route::post('/phone-login', [PhoneAuthController::class, 'login']);
 Route::post('/verify-phone-otp', [PhoneAuthController::class, 'verifyOtp']);
 Route::post('/check-phone-exists', [PhoneAuthController::class, 'checkPhoneExists']);
+
+// Firebase Phone Login
+Route::post('/firebase-phone-login', [FirebasePhoneAuthController::class, 'sendOtp']);
+Route::post('/firebase-verify-otp', [FirebasePhoneAuthController::class, 'verifyOtp']);
+Route::post('/firebase-custom-otp', [FirebasePhoneAuthController::class, 'sendCustomOtp']);
 
 // Google Login
 Route::post('/google-login', [LoginController::class, 'googleLogin']);

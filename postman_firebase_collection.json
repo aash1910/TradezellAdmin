@@ -1,0 +1,225 @@
+{
+  "info": {
+    "name": "Firebase Phone Auth API",
+    "description": "Testing Firebase Phone Authentication endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "test_phone",
+      "value": "+8801234567890",
+      "type": "string"
+    },
+    {
+      "key": "session_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Firebase Send OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"role\": \"dropper\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/firebase-phone-login",
+          "host": ["{{base_url}}"],
+          "path": ["firebase-phone-login"]
+        },
+        "description": "Send OTP via Firebase Authentication"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.session_key) {",
+              "        pm.collectionVariables.set('session_key', response.session_key);",
+              "        console.log('Session key saved:', response.session_key);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Firebase Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"otp\": \"123456\",\n  \"session_key\": \"{{session_key}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/firebase-verify-otp",
+          "host": ["{{base_url}}"],
+          "path": ["firebase-verify-otp"]
+        },
+        "description": "Verify OTP code sent via Firebase"
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.access_token) {",
+              "        pm.collectionVariables.set('access_token', response.access_token);",
+              "        console.log('Access token saved:', response.access_token);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Firebase Custom OTP (Testing)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"role\": \"dropper\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/firebase-custom-otp",
+          "host": ["{{base_url}}"],
+          "path": ["firebase-custom-otp"]
+        },
+        "description": "Generate custom OTP for testing (returns OTP in response)"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Check Phone Exists",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/check-phone-exists",
+          "host": ["{{base_url}}"],
+          "path": ["check-phone-exists"]
+        },
+        "description": "Check if phone number exists in database"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Twilio Send OTP (Comparison)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"role\": \"dropper\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/phone-login",
+          "host": ["{{base_url}}"],
+          "path": ["phone-login"]
+        },
+        "description": "Send OTP via Twilio (for comparison)"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Twilio Verify OTP (Comparison)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_phone}}\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/verify-phone-otp",
+          "host": ["{{base_url}}"],
+          "path": ["verify-phone-otp"]
+        },
+        "description": "Verify OTP via Twilio (for comparison)"
+      },
+      "response": []
+    }
+  ]
+}
