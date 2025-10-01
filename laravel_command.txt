@@ -68,3 +68,8 @@ run specific migration:
 
 to clear the route cache:
 /Applications/MAMP/bin/php/php7.4.33/bin/php artisan optimize:clear
+
+
+DB :
+ALTER TABLE `orders` ADD `delivery_status` INT NOT NULL DEFAULT '0' AFTER `status`;
+ALTER TABLE `orders` ADD `delivery_date` DATETIME NULL AFTER `delivery_status`;

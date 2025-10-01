@@ -152,6 +152,17 @@ class OrderCrudController extends CrudController
             'default' => 'ongoing',
         ]);
 
+        CRUD::addField([
+            'name' => 'delivery_status',
+            'type' => 'select_from_array',
+            'options' => [
+                '0' => 'Ongoing',
+                '1' => 'Delivered',
+            ],
+            'allows_null' => false,
+            'default' => '0',
+        ]);
+
         /**
          * Fields can be defined using the fluent syntax or array syntax:
          * - CRUD::field('price')->type('number');

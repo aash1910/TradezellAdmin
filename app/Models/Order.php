@@ -30,6 +30,8 @@ class Order extends Model
         'package_id',
         'dropper_id',
         'status',
+        'delivery_status',
+        'delivery_date',
     ];
 
     /*

@@ -74,6 +74,7 @@ class PackageController extends Controller
                     'order' => $package->order ? [
                         'id' => $package->order->id,
                         'status' => $package->order->status,
+                        'delivery_status' => $package->order->delivery_status,
                         'dropper' => [
                             'id' => $package->order->dropper->id,
                             'name' => $package->order->dropper->first_name . ' ' . $package->order->dropper->last_name,
