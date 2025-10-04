@@ -40,6 +40,7 @@ class NotificationController extends Controller
                     'description' => $notification->description,
                     'date' => $notification->created_at->format('Y-m-d'),
                     'time' => $notification->created_at->format('h:i A'),
+                    'created_at_utc' => $notification->created_at->toIso8601String(),
                     'isNew' => !$notification->is_read,
                     'type' => $notification->type,
                     'isAdminNotification' => $notification->user_id === 1
@@ -334,7 +335,7 @@ class NotificationController extends Controller
             'user_id' => $userId,
             'type' => 'delivery_status',
             'title' => 'Delivery Status Update',
-            'description' => "Your delivery is now {$status}",
+            'description' => "Your order is now {$status}." . ($status == 'completed' ? " Accept delivery!" : ""),
             'data' => [
                 'delivery_id' => $deliveryId,
                 'status' => $status,
@@ -527,6 +528,7 @@ class NotificationController extends Controller
                             'description' => $notification->description,
                             'date' => $notification->created_at->format('Y-m-d'),
                             'time' => $notification->created_at->format('h:i A'),
+                            'created_at_utc' => $notification->created_at->toIso8601String(),
                             'isNew' => !$notification->is_read,
                             'type' => $notification->type,
                             'isAdminNotification' => $notification->user_id === 1
