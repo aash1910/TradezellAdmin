@@ -166,6 +166,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'delete']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
     Route::post('/notifications/sync-packages', [NotificationController::class, 'syncNearbyPackages']);

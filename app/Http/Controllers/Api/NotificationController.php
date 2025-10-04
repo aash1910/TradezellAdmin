@@ -13,9 +13,14 @@ class NotificationController extends Controller
 {
     public function index()
     {
-        // Get user's personal unread notifications
-        $userNotifications = Notification::where('user_id', Auth::id())
+        // Mark all user's unread notifications as read when they visit the page
+        Notification::where('user_id', Auth::id())
             ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        // Get user's personal notifications (now all marked as read)
+        $userNotifications = Notification::where('user_id', Auth::id())
+            ->where('is_read', true)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -53,6 +58,17 @@ class NotificationController extends Controller
         $notification->update(['is_read' => true]);
 
         return response()->json(['message' => 'Notification marked as read']);
+    }
+
+    public function delete($id)
+    {
+        $notification = Notification::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $notification->delete(); // This will soft delete due to SoftDeletes trait
+
+        return response()->json(['message' => 'Notification deleted successfully']);
     }
 
     public function markAllAsRead()
@@ -410,6 +426,7 @@ class NotificationController extends Controller
         ]);
 
         try {
+
             $riderLat = $request->pickup_lat;
             $riderLng = $request->pickup_lng;
             $radius = 1000; // 100km radius (same as in PackageController searchPackages)
@@ -480,9 +497,14 @@ class NotificationController extends Controller
                 }
             }
 
-            // Get all unread notifications after sync
-            $userNotifications = Notification::where('user_id', $user->id)
+            // Mark all user's unread notifications as read when they visit the page (same logic as index method)
+            Notification::where('user_id', $user->id)
                 ->where('is_read', false)
+                ->update(['is_read' => true]);
+
+            // Get user's personal notifications (now all marked as read) - same logic as index method
+            $userNotifications = Notification::where('user_id', $user->id)
+                ->where('is_read', true)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
