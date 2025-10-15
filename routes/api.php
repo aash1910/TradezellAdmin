@@ -156,6 +156,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Review routes
     Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::get('/reviews/order/{orderId}', [ReviewController::class, 'getOrderReview']);
+    Route::get('/reviews/order/{orderId}/received', [ReviewController::class, 'getReceivedReview']);
 
     // Message routes
     Route::get('/conversations', [MessageController::class, 'getConversations']);

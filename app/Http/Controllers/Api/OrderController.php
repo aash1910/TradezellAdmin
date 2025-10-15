@@ -184,6 +184,16 @@ class OrderController extends Controller
             ->latest()
             ->get()
             ->map(function ($order) {
+                // Check if sender has submitted a review
+                $reviewSubmittedBySender = \App\Models\Review::where('order_id', $order->id)
+                    ->where('reviewer_id', $order->package->sender_id)
+                    ->exists();
+                
+                // Check if rider/dropper has submitted a review
+                $reviewSubmittedByRider = \App\Models\Review::where('order_id', $order->id)
+                    ->where('reviewer_id', $order->dropper_id)
+                    ->exists();
+                
                 return [
                     'id' => $order->package->id,
                     'info' => $order->package->package_info,
@@ -241,7 +251,8 @@ class OrderController extends Controller
                             'image' => $order->dropper->image,
                             'mobile' => $order->dropper->mobile,
                         ],
-                        'review_submitted' => $order->review ? true : false,
+                        'review_submitted' => $reviewSubmittedBySender,
+                        'review_submitted_rider' => $reviewSubmittedByRider,
                         'created_at' => $order->created_at,
                         'updated_at' => $order->updated_at,
                     ],

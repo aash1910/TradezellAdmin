@@ -96,4 +96,71 @@ class ReviewController extends Controller
             'data' => $review
         ], 201);
     }
+
+    /**
+     * Get review for a specific order by the authenticated user.
+     *
+     * @param int $orderId
+     * @return JsonResponse
+     */
+    public function getOrderReview(int $orderId): JsonResponse
+    {
+        $userId = auth()->id();
+        
+        // Find the review submitted by the authenticated user for this order
+        $review = Review::where('order_id', $orderId)
+            ->where('reviewer_id', $userId)
+            ->first();
+
+        if (!$review) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No review found for this order'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $review
+        ], 200);
+    }
+
+    /**
+     * Get review received by the authenticated user for a specific order.
+     * This fetches the review where the authenticated user is the reviewee.
+     *
+     * @param int $orderId
+     * @return JsonResponse
+     */
+    public function getReceivedReview(int $orderId): JsonResponse
+    {
+        $userId = auth()->id();
+        
+        // Find the review where the authenticated user is the reviewee (received review)
+        $review = Review::with(['reviewer:id,first_name,last_name,image'])
+            ->where('order_id', $orderId)
+            ->where('reviewee_id', $userId)
+            ->first();
+
+        if (!$review) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'No review found for this order',
+                'data' => null,
+                'has_review' => false
+            ], 200);
+        }
+
+        // Format the reviewer data to include full name
+        $reviewData = $review->toArray();
+        if ($review->reviewer) {
+            $reviewData['reviewer']['name'] = $review->reviewer->first_name . ' ' . $review->reviewer->last_name;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $reviewData,
+            'has_review' => true
+        ], 200);
+    }
 } 

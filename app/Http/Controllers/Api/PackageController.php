@@ -22,10 +22,28 @@ class PackageController extends Controller
         $packages = Package::with('order')
             ->where('sender_id', auth()->id())
             ->with('sender:id,image')
-            ->with('order.review')
+            ->with('order.dropper')
+            ->with(['order.review' => function($query) {
+                // Load all reviews for the order to check both sender and rider reviews
+            }])
             ->latest()
             ->get()
-            ->map(function ($package) {
+            ->map(function ($package) use ($request) {
+                $reviewSubmittedBySender = false;
+                $reviewSubmittedByRider = false;
+                
+                if ($package->order) {
+                    // Check if sender has submitted a review
+                    $reviewSubmittedBySender = \App\Models\Review::where('order_id', $package->order->id)
+                        ->where('reviewer_id', $package->sender_id)
+                        ->exists();
+                    
+                    // Check if rider/dropper has submitted a review
+                    $reviewSubmittedByRider = \App\Models\Review::where('order_id', $package->order->id)
+                        ->where('reviewer_id', $package->order->dropper_id)
+                        ->exists();
+                }
+                
                 return [
                     'id' => $package->id,
                     'info' => $package->package_info,
@@ -81,7 +99,8 @@ class PackageController extends Controller
                             'image' => $package->order->dropper->image,
                             'mobile' => $package->order->dropper->mobile,
                         ],
-                        'review_submitted' => $package->order->review ? true : false,
+                        'review_submitted' => $reviewSubmittedBySender,
+                        'review_submitted_rider' => $reviewSubmittedByRider,
                         'created_at' => $package->order->created_at,
                         'updated_at' => $package->order->updated_at,
                     ] : [
