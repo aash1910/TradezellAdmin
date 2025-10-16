@@ -81,13 +81,37 @@ class NotificationController extends Controller
         return response()->json(['message' => 'All notifications marked as read']);
     }
 
-    public function getUnreadCount()
+    public function getUnreadCount(Request $request)
     {
-        $count = Notification::where('user_id', Auth::id())
+        $user = Auth::user();
+        
+        // If location is provided and user is a rider, create notifications for nearby packages
+        if ($request->has('pickup_lat') && $request->has('pickup_lng') && $user->hasRole("dropper")) {
+            try {
+                $this->createNearbyPackageNotifications(
+                    $user->id,
+                    $request->pickup_lat,
+                    $request->pickup_lng
+                );
+            } catch (\Exception $e) {
+                // Log error but continue to return count
+                \Log::error('Error creating notifications for nearby packages: ' . $e->getMessage());
+            }
+        }
+
+        // Count user's personal unread notifications
+        $userCount = Notification::where('user_id', Auth::id())
             ->where('is_read', false)
             ->count();
 
-        return response()->json(['count' => $count]);
+        // Count admin's unread notifications (common for all users)
+        $adminCount = Notification::where('user_id', 1)
+            ->where('is_read', false)
+            ->count();
+
+        $totalCount = $userCount + $adminCount;
+
+        return response()->json(['count' => $totalCount]);
     }
 
     // Helper methods for creating different types of notifications
@@ -427,76 +451,12 @@ class NotificationController extends Controller
         ]);
 
         try {
-
-            $riderLat = $request->pickup_lat;
-            $riderLng = $request->pickup_lng;
-            $radius = 1000; // 100km radius (same as in PackageController searchPackages)
-            $radiusInMeters = $radius * 1000;
-
-            // Get existing package notifications to avoid duplicates
-            $existingPackageIds = Notification::where('user_id', $user->id)
-                ->where('type', 'package_available')
-                ->get()
-                ->pluck('data')
-                ->map(function($data) {
-                    // Check if data is already an array (Laravel auto-decodes JSON columns)
-                    $decoded = is_array($data) ? $data : json_decode($data, true);
-                    return $decoded['package_id'] ?? null;
-                })
-                ->filter()
-                ->toArray();
-
-            // Find nearby packages using the same logic as PackageController searchPackages
-            $packages = Package::select('*')
-                ->selectRaw('
-                    ( 6371000 * acos( cos( radians(?) ) *
-                        cos( radians( pickup_lat ) ) *
-                        cos( radians( pickup_lng ) - radians(?) ) +
-                        sin( radians(?) ) *
-                        sin( radians( pickup_lat ) )
-                    ) ) AS pickup_distance', 
-                    [$riderLat, $riderLng, $riderLat]
-                )
-                ->whereRaw('
-                    ( 6371000 * acos( cos( radians(?) ) *
-                        cos( radians( pickup_lat ) ) *
-                        cos( radians( pickup_lng ) - radians(?) ) +
-                        sin( radians(?) ) *
-                        sin( radians( pickup_lat ) )
-                    ) ) <= ?', 
-                    [$riderLat, $riderLng, $riderLat, $radiusInMeters]
-                )
-                ->where('status', 'active')
-                ->whereDoesntHave('order', function($query) {
-                    $query->whereIn('status', ['active', 'completed']);
-                })
-                ->where('pickup_date', '>=', date('Y-m-d'))
-                ->whereNotIn('id', $existingPackageIds) // Exclude packages that already have notifications
-                ->with('sender:id,image,first_name,last_name,mobile')
-                ->orderBy('pickup_date', 'asc')
-                ->orderBy('pickup_distance')
-                ->get();
-
-            $newNotifications = 0;
-
-            // Only process if we have packages
-            if ($packages && $packages->count() > 0) {
-                foreach ($packages as $package) {
-                    // Create notification for nearby package
-                    $pickupDistanceKm = round($package->pickup_distance / 1000, 2);
-                    
-                    self::createPackageAvailableNotification(
-                        $user->id,
-                        $package->id,
-                        $package->price,
-                        $pickupDistanceKm, // Distance in km (properly rounded)
-                        null, // No dropoff distance since we're only checking pickup
-                        $package->pickup_address,
-                        $package->drop_address
-                    );
-                    $newNotifications++;
-                }
-            }
+            // Create notifications for nearby packages using common method
+            $newNotifications = $this->createNearbyPackageNotifications(
+                $user->id,
+                $request->pickup_lat,
+                $request->pickup_lng
+            );
 
             // Mark all user's unread notifications as read when they visit the page (same logic as index method)
             Notification::where('user_id', $user->id)
@@ -578,5 +538,86 @@ class NotificationController extends Controller
         $c = 2 * atan2(sqrt($a), sqrt(1-$a));
 
         return $earthRadius * $c;
+    }
+
+    /**
+     * Find and create notifications for nearby packages
+     * Returns the number of new notifications created
+     * 
+     * @param int $userId The rider's user ID
+     * @param float $riderLat The rider's latitude
+     * @param float $riderLng The rider's longitude
+     * @return int Number of new notifications created
+     */
+    private function createNearbyPackageNotifications($userId, $riderLat, $riderLng)
+    {
+        $radius = 1000; // 100km radius (same as in PackageController searchPackages)
+        $radiusInMeters = $radius * 1000;
+
+        // Get existing package notifications to avoid duplicates
+        $existingPackageIds = Notification::where('user_id', $userId)
+            ->where('type', 'package_available')
+            ->get()
+            ->pluck('data')
+            ->map(function($data) {
+                // Check if data is already an array (Laravel auto-decodes JSON columns)
+                $decoded = is_array($data) ? $data : json_decode($data, true);
+                return $decoded['package_id'] ?? null;
+            })
+            ->filter()
+            ->toArray();
+
+        // Find nearby packages using the same logic as PackageController searchPackages
+        $packages = Package::select('*')
+            ->selectRaw('
+                ( 6371000 * acos( cos( radians(?) ) *
+                    cos( radians( pickup_lat ) ) *
+                    cos( radians( pickup_lng ) - radians(?) ) +
+                    sin( radians(?) ) *
+                    sin( radians( pickup_lat ) )
+                ) ) AS pickup_distance', 
+                [$riderLat, $riderLng, $riderLat]
+            )
+            ->whereRaw('
+                ( 6371000 * acos( cos( radians(?) ) *
+                    cos( radians( pickup_lat ) ) *
+                    cos( radians( pickup_lng ) - radians(?) ) +
+                    sin( radians(?) ) *
+                    sin( radians( pickup_lat ) )
+                ) ) <= ?', 
+                [$riderLat, $riderLng, $riderLat, $radiusInMeters]
+            )
+            ->where('status', 'active')
+            ->whereDoesntHave('order', function($query) {
+                $query->whereIn('status', ['active', 'completed']);
+            })
+            ->where('pickup_date', '>=', date('Y-m-d'))
+            ->whereNotIn('id', $existingPackageIds) // Exclude packages that already have notifications
+            ->with('sender:id,image,first_name,last_name,mobile')
+            ->orderBy('pickup_date', 'asc')
+            ->orderBy('pickup_distance')
+            ->get();
+
+        $newNotifications = 0;
+
+        // Create notifications for new nearby packages
+        if ($packages && $packages->count() > 0) {
+            foreach ($packages as $package) {
+                $pickupDistanceKm = round($package->pickup_distance / 1000, 2);
+                
+                self::createPackageAvailableNotification(
+                    $userId,
+                    $package->id,
+                    $package->price,
+                    $pickupDistanceKm,
+                    null,
+                    $package->pickup_address,
+                    $package->drop_address
+                );
+                $newNotifications++;
+            }
+        }
+
+        return $newNotifications;
     }
 } 
