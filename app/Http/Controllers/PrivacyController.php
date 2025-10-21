@@ -28,6 +28,14 @@ class PrivacyController extends Controller
     }
 
     /**
+     * Display the support page
+     */
+    public function support()
+    {
+        return view('support');
+    }
+
+    /**
      * Handle data deletion requests
      */
     public function deleteUserData(Request $request)
