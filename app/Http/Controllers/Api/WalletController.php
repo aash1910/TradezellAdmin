@@ -604,8 +604,8 @@ class WalletController extends Controller
             }
 
             // Create release payment record
-            $riderAmount = round($escrowPayment->amount * 0.908, 2); // 90.8% to rider
-            $commissionAmount = round($escrowPayment->amount * 0.092, 2); // 9.2% commission
+            $riderAmount = round($escrowPayment->amount * 0.90, 2); // 90% to rider
+            $commissionAmount = round($escrowPayment->amount * 0.10, 2); // 10% commission
 
             $releasePayment = Payment::create([
                 'package_id' => $order->package_id,
