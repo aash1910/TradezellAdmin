@@ -34,11 +34,16 @@ STRIPE_PUBLIC_KEY=pk_live_YOUR_PRODUCTION_KEY
 
 ### App Information
 
-**App Name:** PiqDrop
+**App Name:** PiqDrop Sender 
 
 **Subtitle (30 chars max):** 
 ```
-Fast & Reliable Package Delivery
+Fast & Reliable Delivery
+```
+
+**Copyright:**
+```
+2025 PiqDrop
 ```
 
 **Category:**
@@ -53,71 +58,68 @@ Send packages quickly and securely with PiqDrop! Whether you're sending a gift t
 
 KEY FEATURES:
 
-📦 Easy Package Sending
-• Create delivery requests in seconds
-• Add package photos and details
-• Set pickup and drop-off locations with precision
-• Track your package in real-time
+Easy Package Sending
+- Create delivery requests in seconds
+- Add package photos and details
+- Set pickup and drop-off locations with precision
+- Track your package in real-time
 
-💳 Secure Payments
-• Pay safely with Stripe integration
-• Transparent pricing with no hidden fees
-• Multiple payment methods supported
-• Instant payment confirmation
+Secure Payments
+- Pay safely with Stripe integration
+- Transparent pricing with no hidden fees
+- Instant payment confirmation
 
-🗺️ Real-Time Tracking
-• Live GPS tracking of your package
-• Estimated delivery time updates
-• Direct communication with your courier
-• Delivery confirmation with proof of delivery
+Direct Messaging
+- Chat directly with your assigned rider
+- Get instant support from PiqDrop team
+- Real-time updates and delivery coordination
 
-👤 User-Friendly Experience
-• Simple and intuitive interface
-• Save favorite addresses for quick access
-• View complete delivery history
-• Rate and review your delivery experience
+User-Friendly Experience
+- Simple and intuitive interface
+- Save favorite addresses for quick access
+- View complete delivery history
+- Rate and review your delivery experience
 
-🔔 Smart Notifications
-• Instant updates on delivery status
-• Pickup and drop-off confirmations
-• Driver assignment alerts
-• Delivery completion notifications
+Smart Notifications
+- Instant updates on delivery status
+- Pickup and drop-off confirmations
+- Rider assignment alerts
+- Delivery completion notifications
 
-🌍 Wide Coverage
-• Local delivery services
-• Flexible scheduling options
-• Multiple package types supported
-• Same-day delivery available
+Wide Coverage
+- Local delivery services
+- Flexible scheduling options
+- Multiple package types supported
+- Same-day delivery available
 
 PERFECT FOR:
-• Personal package delivery
-• Business document courier
-• Gift deliveries
-• E-commerce fulfillment
-• Emergency deliveries
-• Returned items
+- Personal package delivery
+- Business document courier
+- Gift deliveries
+- E-commerce fulfillment
+- Emergency deliveries
+- Returned items
 
 WHY CHOOSE PIQDROP?
 
-✓ Trusted Couriers - All drivers are verified
-✓ Competitive Pricing - Fair rates for quality service
-✓ Fast Delivery - Quick pickup and drop-off
-✓ Secure Handling - Your packages are safe with us
-✓ 24/7 Support - Help when you need it
+- Trusted Couriers - All drivers are verified
+- Competitive Pricing - Set your own price for delivery service
+- Fast Delivery - Quick pickup and drop-off
+- Secure Handling - Your packages are safe with us
+- 24/7 Support - Help when you need it
 
 HOW IT WORKS:
 
 1. Enter pickup and delivery locations
 2. Add package details and photos
-3. Get instant price quote
+3. Set your price based on package type
 4. Confirm and pay securely
-5. Track your delivery in real-time
+5. Contact rider directly for delivery updates
 6. Receive delivery confirmation
 
 Download PiqDrop today and experience hassle-free package delivery at your fingertips!
 
-For support: support@piqdrop.com
-Website: www.piqdrop.com
+Privacy Policy: https://piqdrop.com/privacy-policy
 ```
 
 **Keywords (100 chars max):**
@@ -127,7 +129,7 @@ delivery,courier,package,shipping,local delivery,same day,tracking,express,send 
 
 **Promotional Text (170 chars max - optional but recommended):**
 ```
-🚀 NEW: Real-time package tracking with live GPS! Send packages faster and safer than ever. Download now and get your first delivery quote instantly!
+NEW: Direct messaging with riders! Set your own delivery price and communicate directly with riders. Download now and get your first delivery quote instantly!
 ```
 
 **Support URL:**
@@ -146,6 +148,31 @@ https://piqdrop.com
 https://piqdrop.com/privacy-policy
 ```
 
+### App Review Information
+
+**Sign-In Information:**
+- **Sign-in required:** Yes
+- **User name:** [DEMO_USERNAME]
+- **Password:** [DEMO_PASSWORD]
+
+**Contact Information:**
+- **First name:** Ashraful
+- **Last name:** Islam
+- **Phone number:** +46-700671992
+- **Email:** support@piqdrop.com
+- **Notes:** 
+```
+Demo account for PiqDrop Sender app review.
+Account has sample delivery requests and test data.
+All features are functional including:
+- Package creation and photo upload
+- Direct messaging with riders
+- Payment processing (test mode)
+- Delivery tracking and updates
+
+For any issues during review, contact support@piqdrop.com
+```
+
 ---
 
 ## 🏍️ App 2: PiqDrop Rider (Delivery App)
@@ -160,8 +187,8 @@ Earn Money Delivering Packages
 ```
 
 **Category:**
-- **Primary:** Business or Lifestyle
-- **Secondary:** Productivity or Travel
+- **Primary:** Lifestyle
+- **Secondary:** Productivity
 
 **Description (4000 chars max):**
 ```
@@ -171,47 +198,40 @@ Join PiqDrop's growing network of delivery couriers and start earning money on y
 
 KEY FEATURES:
 
-💰 Earn More, Your Way
+Earn More, Your Way
 • Competitive earnings per delivery
-• Keep 100% of your tips
 • Daily or weekly payouts via Stripe
 • Transparent earnings breakdown
-• Bonus incentives for peak hours
 
-📍 Smart Job Management
+Smart Job Management
 • See available deliveries near you
 • Accept jobs that fit your schedule
 • Optimized route suggestions
 • Multiple delivery support
 • Real-time earnings tracker
 
-🗺️ Easy Navigation
-• Built-in GPS navigation
-• Turn-by-turn directions
-• Live traffic updates
-• Pickup and drop-off locations marked
+Easy Navigation
+• View pickup and drop-off locations on map
+• One-tap navigation via Google Maps
 • Distance and time estimates
+• Clear address details for each delivery
 
-💳 Secure & Fast Payments
+Secure & Fast Payments
 • Instant payment processing via Stripe
-• Multiple withdrawal options
+• Direct bank account withdrawals
 • Detailed earning reports
-• Tax documentation support
 • Secure banking integration
 
-📱 Professional Tools
-• In-app messaging with customers
-• Photo proof of delivery
-• Digital signature capture
-• Package condition documentation
+Professional Tools
+• In-app messaging with sender
 • Customer rating system
 
-📊 Performance Dashboard
-• Track your daily/weekly/monthly earnings
-• View delivery history
-• Monitor customer ratings
-• Set earning goals
-• Performance insights
+Order Manager
+• View all available delivery requests
+• Accept or decline orders based on your availability
+• Update delivery status at each step
+• Access complete order details and package information
+• View delivery history and completed orders
 
 PERFECT FOR:
 • Part-time workers
@@ -222,13 +242,12 @@ PERFECT FOR:
 • Gig economy workers
 
 WHY DELIVER WITH PIQDROP?
-
-✓ Flexible Hours - Work when you want
-✓ Fair Pay - Competitive rates + tips
-✓ Quick Payouts - Get paid fast
-✓ No Shifts - Be your own boss
-✓ Easy to Start - Simple onboarding
-✓ Support Team - We've got your back
+• Flexible Hours - Work when you want
+• Fair Pay - Competitive rates
+• Quick Payouts - Get paid fast
+• No Shifts - Be your own boss
+• Easy to Start - Simple onboarding
+• Support Team - We've got your back
 
 HOW IT WORKS:
 
@@ -240,25 +259,22 @@ HOW IT WORKS:
 6. Get paid instantly
 
 REQUIREMENTS:
-• Valid driver's license
+• Valid driver's document like passport
 • Reliable transportation (car, bike, scooter)
-• Smartphone with GPS
+• Smartphone
 • 18+ years old
-• Background check (handled in-app)
 
 EARNINGS POTENTIAL:
-• Average $15-$30 per hour
-• Peak time bonuses
-• Customer tips (100% yours)
-• Referral bonuses
-• Weekly guarantees
+• Competitive pay per delivery
+• Transparent earnings breakdown
+• Daily or weekly payouts via Stripe
+• Detailed earning reports
 
 JOIN THOUSANDS OF SUCCESSFUL RIDERS
 
 Start earning today with PiqDrop Rider - your gateway to flexible income and financial freedom!
 
-For support: rider-support@piqdrop.com
-Website: www.piqdrop.com/riders
+Privacy Policy: https://piqdrop.com/privacy-policy
 ```
 
 **Keywords (100 chars max):**
@@ -268,7 +284,7 @@ delivery driver,courier job,earn money,gig economy,flexible work,side hustle,dri
 
 **Promotional Text (170 chars max):**
 ```
-💸 Earn $15-$30/hour delivering packages! Flexible schedule, instant payouts. Join our driver network today and start making money on your own terms!
+💸 Earn money delivering packages! Flexible schedule, instant payouts. Join our driver network today and start making money on your own terms!
 ```
 
 **Support URL:**
@@ -355,18 +371,21 @@ Password: DemoPass123!
 
 TESTING INSTRUCTIONS:
 1. Login with demo credentials
+
 2. To test delivery creation:
-   - Tap "New Delivery" on home screen
+   - Tap "Home" tab on home screen
    - Enter pickup address: [Provide a valid test address]
-   - Enter delivery address: [Provide a valid test address]
+   - Enter delivery/Drop-off address: [Provide a valid test address]
    - Add package details and photos
-   - Proceed to payment (test mode enabled)
-   
-3. Payment Testing:
-   - App uses Stripe for payments
-   - Test card: 4242 4242 4242 4242
-   - Any future expiry date
-   - Any 3-digit CVC
+   - Proceed to payment
+
+3. Payment Testing (STRIPE TEST MODE):
+   - **IMPORTANT**: App is configured with Stripe TEST MODE for review
+   - **No real charges will be made**
+   - Test card number: 4242 4242 4242 4242
+   - Any future expiry date (e.g., 12/25)
+   - Any 3-digit CVC (e.g., 123)
+   - This will simulate a successful payment without charging any real money
 
 4. Location Permissions:
    - App requires location for pickup/delivery addresses
@@ -378,7 +397,8 @@ TESTING INSTRUCTIONS:
    - Google Sign-In is available as an alternative login method
    - Test with any Google account or use demo credentials
 
-Note: This is a delivery service app. Actual deliveries require real drivers from our rider app.
+Note: This is a delivery service app. The test environment simulates the full delivery flow.
+Payment processing uses Stripe's test environment - no real transactions will occur during review.
 ```
 
 **For PiqDrop Rider:**
@@ -391,13 +411,13 @@ TESTING INSTRUCTIONS:
 1. Login with demo credentials
 2. The demo account is pre-verified and approved
 3. To test delivery acceptance:
-   - Tap "Go Online" on home screen
-   - Available deliveries will appear on map
-   - Tap any delivery to view details
+   - Tap "Home" tab on home screen
+   - Available deliveries/packages will appear
+   - Tap any delivery/package to view details
    - Accept delivery to start
 
 4. Earnings & Payout Testing:
-   - View earnings in "Earnings" tab
+   - View Wallet in "Profile" tab
    - Test payout with Stripe test mode
    - Test bank account: Use Stripe test details
 

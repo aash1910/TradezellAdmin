@@ -169,13 +169,11 @@ eas build --platform ios --profile production
 
 # 3. Submit PiqDrop to App Store
 cd /Volumes/ExAsh/Sites/PiqDrop
-eas submit --platform ios --latest
+eas submit --platform ios --profile production
 
 # 4. Submit PiqRider to App Store
 cd /Volumes/ExAsh/Sites/PiqRider
-eas submit --platform ios --latest
-```
-
+eas submit --platform ios --profile production
 ---
 
 ### 6. Complete App Store Connect

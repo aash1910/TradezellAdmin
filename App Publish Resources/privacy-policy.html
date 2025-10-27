@@ -256,7 +256,7 @@
         <ul>
             <li><strong>Encryption:</strong> All data transmitted between your device and our servers uses SSL/TLS encryption</li>
             <li><strong>Secure Storage:</strong> Personal data is stored on secure servers with restricted access</li>
-            <li><strong>Password Protection:</strong> Passwords are encrypted using bcrypt hashing</li>
+            <li><strong>Password Protection:</strong> Passwords are hashed</li>
             <li><strong>Payment Security:</strong> All payment data is handled by PCI-DSS compliant Stripe</li>
             <li><strong>Access Controls:</strong> Only authorized personnel can access personal data</li>
             <li><strong>Regular Audits:</strong> We conduct security audits and updates regularly</li>
@@ -360,7 +360,6 @@
         <ul>
             <li>Photos are stored on secure servers</li>
             <li>Only relevant parties can view (sender, assigned rider, support team)</li>
-            <li>You can delete photos from your delivery history</li>
             <li>We do not access your photo library beyond images you explicitly select</li>
         </ul>
     </div>
