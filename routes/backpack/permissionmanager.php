@@ -16,7 +16,7 @@ Route::group([
     'middleware' => ['web', backpack_middleware()],
 ], function () {
     Route::crud('permission', 'PermissionCrudController');
-    Route::crud('role', 'RoleCrudController');
+    //Route::crud('role', 'RoleCrudController');
     //Route::crud('user', 'UserCrudController');
 
     if (app('env') == 'production') {
@@ -31,4 +31,13 @@ Route::group([
             });
         }
     }
+});
+
+// Custom Role CRUD Controller with delete disabled
+Route::group([
+    'namespace'  => 'App\Http\Controllers\Admin',
+    'prefix'     => config('backpack.base.route_prefix', 'admin'),
+    'middleware' => ['web', backpack_middleware()],
+], function () {
+    Route::crud('role', 'RoleCrudController');
 });

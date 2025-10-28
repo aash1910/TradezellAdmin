@@ -17,9 +17,10 @@ class MessageCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\BulkDeleteOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     // use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    // use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -92,8 +93,24 @@ class MessageCrudController extends CrudController
             CRUD::addClause('where', 'sender_id', $value);
         });
 
-        // Disable create, update, delete operations in list view
-        CRUD::denyAccess(['create', 'update', 'delete']);
+        // Add date range filter for bulk deletion by date
+        CRUD::addFilter([
+            'type' => 'date_range',
+            'name' => 'created_at',
+            'label' => 'Date Range'
+        ],
+        false,
+        function ($value) {
+            $dates = json_decode($value);
+            if (isset($dates->from) && isset($dates->to)) {
+                CRUD::addClause('whereDate', 'created_at', '>=', $dates->from);
+                CRUD::addClause('whereDate', 'created_at', '<=', $dates->to);
+            }
+        });
+
+        // Disable create and update operations in list view
+        // Delete and bulk delete are now enabled for message cleanup
+        CRUD::denyAccess(['create', 'update']);
     }
 
     /**
