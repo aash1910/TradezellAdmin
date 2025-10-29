@@ -208,45 +208,52 @@ class WalletController extends Controller
             // Get or create Stripe Connect account
             $stripeAccount = $this->getOrCreateStripeAccount($user);
 
-            // Check if account has external accounts for the requested currency
+            // Check if account has any external accounts (support multi-currency)
             $externalAccounts = \Stripe\Account::allExternalAccounts(
                 $stripeAccount->id,
-                ['object' => 'bank_account', 'limit' => 100]
+                ['limit' => 100]
             );
 
-            $hasExternalAccountForCurrency = false;
-            foreach ($externalAccounts->data as $externalAccount) {
-                if ($externalAccount->currency === strtolower($currency)) {
-                    $hasExternalAccountForCurrency = true;
-                    break;
-                }
-            }
-
-            if (!$hasExternalAccountForCurrency) {
+            if (count($externalAccounts->data) === 0) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => "Withdrawal failed: Sorry, you don't have any external accounts in that currency ({$currency}). Please add a bank account or debit card in your Stripe Connect dashboard first."
-                ], 500);
+                    'message' => "Withdrawal failed: You don't have any external accounts (bank account or debit card) linked to your Stripe Connect account. Please add one first."
+                ], 400);
             }
 
-            // Create transfer to Stripe Connect account
+            // Get the first external account's currency for the transfer
+            $externalAccount = $externalAccounts->data[0];
+            $transferCurrency = $externalAccount->currency ?? strtolower($currency);
+
+            // If system currency differs from external account currency, log a warning
+            if (strtolower($currency) !== strtolower($transferCurrency)) {
+                Log::warning("Currency mismatch for user {$user->id}: System currency is {$currency}, but external account currency is {$transferCurrency}. Using external account currency.");
+            }
+
+            // Calculate amount in the external account's currency
+            // Note: For production, you may want to implement currency conversion
+            $transferAmount = $request->amount; // Amount in cents
+
+            // Create transfer to Stripe Connect account using the external account's currency
             $transfer = Transfer::create([
-                'amount' => $request->amount, // Amount in cents
-                'currency' => $currency,
+                'amount' => $transferAmount,
+                'currency' => $transferCurrency,
                 'destination' => $stripeAccount->id,
                 'metadata' => [
                     'user_id' => $user->id,
                     'withdrawal_type' => 'wallet_withdrawal',
+                    'system_currency' => $currency,
+                    'transfer_currency' => $transferCurrency,
                 ],
             ]);
 
-            // Create withdrawal payment record
+            // Create withdrawal payment record using the transfer currency
             $withdrawalPayment = Payment::create([
                 'package_id' => null,
                 'user_id' => $user->id,
                 'stripe_payment_intent_id' => $transfer->id,
                 'amount' => -$amount, // Negative amount for withdrawal
-                'currency' => $currency,
+                'currency' => $transferCurrency,
                 'status' => 'pending', // Always set to 'pending' for withdrawal
                 'payment_type' => 'withdrawal',
                 'refund_reason' => 'Wallet withdrawal',
@@ -259,7 +266,7 @@ class WalletController extends Controller
                 'data' => [
                     'id' => $transfer->id,
                     'amount' => $amount,
-                    'currency' => $currency,
+                    'currency' => $transferCurrency,
                     'status' => $transfer->status,
                     'estimated_arrival' => now()->addDays(2)->toISOString(), // Transfers are typically faster than payouts
                     'created_at' => $withdrawalPayment->created_at->toISOString(),
@@ -272,13 +279,15 @@ class WalletController extends Controller
             // Provide more user-friendly error messages for common Stripe errors
             $errorMessage = 'Withdrawal failed';
             if (strpos($e->getMessage(), 'external_accounts') !== false) {
-                $errorMessage = "Withdrawal failed: Sorry, you don't have any external accounts in that currency ({$currency}). Please add a bank account or debit card in your Stripe Connect dashboard first.";
+                $errorMessage = "Withdrawal failed: You don't have any external accounts (bank account or debit card) linked. Please add one in your Stripe Connect dashboard first.";
             } elseif (strpos($e->getMessage(), 'payouts_enabled') !== false) {
                 $errorMessage = "Withdrawal failed: Payouts are not enabled for your Stripe Connect account. Please complete your account verification first.";
             } elseif (strpos($e->getMessage(), 'insufficient_funds') !== false) {
-                $errorMessage = "Withdrawal failed: Insufficient funds in your Stripe Connect account.";
+                $errorMessage = "Withdrawal failed: Insufficient funds in the main account.";
             } elseif (strpos($e->getMessage(), 'insufficient_balance') !== false) {
                 $errorMessage = "Withdrawal failed: Insufficient balance in your wallet.";
+            } elseif (strpos($e->getMessage(), 'currency') !== false) {
+                $errorMessage = "Withdrawal failed: Currency mismatch. Please ensure your bank account currency matches the withdrawal currency.";
             } else {
                 $errorMessage = 'Withdrawal failed: ' . $e->getMessage();
             }
@@ -351,26 +360,49 @@ class WalletController extends Controller
             $user = Auth::user();
             $stripeAccount = $this->getOrCreateStripeAccount($user);
 
-            // Get external accounts
-            $externalAccounts = \Stripe\Account::allExternalAccounts(
+            $systemCurrency = config('services.currency');
+            $hasExternalAccountForCurrency = false;
+            $hasAnyExternalAccount = false;
+            $externalAccountsList = [];
+            $primaryExternalAccountCurrency = null;
+
+            // Get all external accounts (both bank accounts and cards)
+            $allExternalAccounts = \Stripe\Account::allExternalAccounts(
                 $stripeAccount->id,
-                ['object' => 'bank_account', 'limit' => 100]
+                ['limit' => 100]
             );
 
-            $currency = config('services.currency');
-            $hasExternalAccountForCurrency = false;
-            $externalAccountsList = [];
-
-            foreach ($externalAccounts->data as $externalAccount) {
-                $externalAccountsList[] = [
+            // Process all external accounts
+            foreach ($allExternalAccounts->data as $index => $externalAccount) {
+                $accountData = [
                     'id' => $externalAccount->id,
-                    'currency' => $externalAccount->currency,
-                    'bank_name' => $externalAccount->bank_name,
-                    'last4' => $externalAccount->last4,
-                    'country' => $externalAccount->country,
+                    'object' => $externalAccount->object,
+                    'currency' => $externalAccount->currency ?? null,
+                    'last4' => $externalAccount->last4 ?? null,
+                    'country' => $externalAccount->country ?? null,
                 ];
+
+                // Add type-specific fields
+                if ($externalAccount->object === 'bank_account') {
+                    $accountData['bank_name'] = $externalAccount->bank_name ?? null;
+                    $accountData['account_holder_type'] = $externalAccount->account_holder_type ?? null;
+                } elseif ($externalAccount->object === 'card') {
+                    $accountData['brand'] = $externalAccount->brand ?? null;
+                    $accountData['exp_month'] = $externalAccount->exp_month ?? null;
+                    $accountData['exp_year'] = $externalAccount->exp_year ?? null;
+                }
+
+                $externalAccountsList[] = $accountData;
+                $hasAnyExternalAccount = true;
                 
-                if ($externalAccount->currency === strtolower($currency)) {
+                // Store the first external account's currency
+                if ($index === 0 && isset($externalAccount->currency)) {
+                    $primaryExternalAccountCurrency = strtoupper($externalAccount->currency);
+                }
+                
+                // Check if this external account matches the system currency
+                if (isset($externalAccount->currency) && 
+                    strtolower($externalAccount->currency) === strtolower($systemCurrency)) {
                     $hasExternalAccountForCurrency = true;
                 }
             }
@@ -388,8 +420,9 @@ class WalletController extends Controller
                     'payouts_enabled' => $stripeAccount->payouts_enabled,
                     'charges_enabled' => $stripeAccount->charges_enabled,
                     'external_accounts' => $externalAccountsList,
-                    'has_external_account_for_currency' => $hasExternalAccountForCurrency,
-                    'currency' => $currency,
+                    'has_external_account_for_currency' => $hasAnyExternalAccount, // Changed to check for ANY external account
+                    'currency' => $primaryExternalAccountCurrency ?? $systemCurrency, // Use external account currency if available
+                    'system_currency' => $systemCurrency,
                 ]
             ]);
 
