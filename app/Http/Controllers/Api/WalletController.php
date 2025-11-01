@@ -199,9 +199,16 @@ class WalletController extends Controller
             // Check main Stripe account balance
             $mainAccountBalance = $this->getMainAccountBalance($currency);
             if ($mainAccountBalance < $request->amount) {
+                // Check if there's a pending balance that will cover the shortfall
+                $availableDate = $this->getPendingBalanceAvailableDate($currency, $request->amount);
+                
+                $message = $availableDate 
+                    ? "You can withdraw funds on {$availableDate}"
+                    : 'Insufficient funds in main account to process withdrawal';
+                
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Insufficient funds in main account to process withdrawal'
+                    'message' => $message
                 ], 400);
             }
 
@@ -765,6 +772,82 @@ class WalletController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to get main account balance: ' . $e->getMessage());
             return 0;
+        }
+    }
+
+    /**
+     * Helper method to get the date when pending balance will be available
+     * 
+     * @param string $currency The currency code
+     * @param int $requiredAmount The amount needed (in cents)
+     * @return string|null The formatted date when funds will be available, or null if not available
+     */
+    private function getPendingBalanceAvailableDate($currency, $requiredAmount)
+    {
+        try {
+            $balance = \Stripe\Balance::retrieve();
+            
+            // Get current available balance
+            $currentAvailable = 0;
+            foreach ($balance->available as $availableBalance) {
+                if ($availableBalance->currency === strtolower($currency)) {
+                    $currentAvailable = $availableBalance->amount;
+                    break;
+                }
+            }
+            
+            // Get pending balance for this currency
+            $totalPending = 0;
+            foreach ($balance->pending as $pending) {
+                if ($pending->currency === strtolower($currency)) {
+                    $totalPending += $pending->amount;
+                }
+            }
+            
+            // Log for debugging
+            Log::info("Withdrawal check - Available: {$currentAvailable}, Pending: {$totalPending}, Required: {$requiredAmount}");
+            
+            // If there's pending balance, get the actual settlement date from BalanceTransactions
+            if ($totalPending > 0) {
+                try {
+                    // Retrieve recent balance transactions to find pending ones with available_on dates
+                    $transactions = \Stripe\BalanceTransaction::all([
+                        'limit' => 100,
+                    ]);
+                    
+                    $earliestAvailableOn = null;
+                    
+                    foreach ($transactions->data as $transaction) {
+                        // Check if this transaction is for our currency and has a future available_on date
+                        if ($transaction->currency === strtolower($currency) && 
+                            isset($transaction->available_on) && 
+                            $transaction->available_on > time()) {
+                            
+                            if ($earliestAvailableOn === null || $transaction->available_on < $earliestAvailableOn) {
+                                $earliestAvailableOn = $transaction->available_on;
+                            }
+                        }
+                    }
+                    
+                    if ($earliestAvailableOn !== null) {
+                        // Convert Unix timestamp to Carbon date
+                        $availableDate = Carbon::createFromTimestamp($earliestAvailableOn);
+                        Log::info("Found earliest available_on date: " . $availableDate->format('Y-m-d H:i:s'));
+                        
+                        // Format the date as "3 Nov" style
+                        return $availableDate->format('j M');
+                    }
+                    
+                } catch (\Exception $e) {
+                    Log::warning('Failed to retrieve balance transactions: ' . $e->getMessage());
+                }
+            }
+            
+            return null; // No pending balance available
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to get pending balance available date: ' . $e->getMessage());
+            return null;
         }
     }
 } 
