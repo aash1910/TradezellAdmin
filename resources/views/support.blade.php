@@ -154,7 +154,10 @@
                 4. Enter pickup and delivery addresses<br>
                 5. Add package details and photos<br>
                 6. Review the price quote<br>
-                7. Complete payment to confirm
+                7. Complete payment to confirm<br>
+                8. Wait for a rider to accept the delivery<br>
+                9. If no rider accepts the delivery, you will get a refund by pressing "Cancel Delivery".<br>
+                10. Don't forget to "Accept Delivery" if Rider completes the delivery so that Rider can get paid.
             </div>
         </div>
 
@@ -165,7 +168,6 @@
                 <ul>
                     <li>View Rider Information in "Manage/My Orders" page</li>
                     <li>Contact the rider through in-app messaging</li>
-                    <li>Receive notifications for pickup and delivery</li>
                 </ul>
             </div>
         </div>
@@ -214,12 +216,15 @@
         <div class="faq-item">
             <div class="faq-question">Is my package insured?</div>
             <div class="faq-answer">
-                Basic coverage is included with every delivery. For high-value items, please:
+                PiqDrop is a platform that connects senders with independent riders. We do not provide insurance or guarantees for packages. To protect your items:
                 <ul>
-                    <li>Declare the item value when creating the delivery</li>
-                    <li>Take clear photos of the package</li>
-                    <li>Contact support for additional insurance options</li>
+                    <li>Communicate directly with your rider through in-app messaging before and during delivery</li>
+                    <li>Take clear photos of the package before handover</li>
+                    <li>For valuable items, consider arranging your own insurance coverage</li>
+                    <li>Document the package condition and contents</li>
+                    <li>Use appropriate packaging for your items</li>
                 </ul>
+                You are responsible for assessing the suitability of the rider and delivery service for your needs.
             </div>
         </div>
 
@@ -231,7 +236,7 @@
                 1. Download the PiqDrop Rider app<br>
                 2. Create an account<br>
                 3. Complete identity verification<br>
-                4. Wait for approval (usually 24-48 hours)<br>
+                4. Complete background check<br>
                 5. Start accepting deliveries!
             </div>
         </div>
@@ -257,7 +262,7 @@
                 <ul>
                     <li>18+ years old</li>
                     <li>Valid ID or Passport</li>
-                    <li>Reliable transportation (car, motorcycle, bicycle, scooter)</li>
+                    <li>Any legal means of transportation (car, motorcycle, bicycle, scooter, public transport, walking, or whatever means is legal in your area)</li>
                     <li>Smartphone with GPS</li>
                     <li>Pass identity verification</li>
                 </ul>
@@ -273,6 +278,7 @@
                 4. Tap "Accept" to start the delivery<br>
                 5. Follow in-app navigation to pickup location<br>
                 6. Complete pickup and deliver to destination
+                7. Don't forget to press "Complete Delivery" in-app so that you can get paid.
             </div>
         </div>
 
@@ -379,7 +385,6 @@
                 Don't worry! Here's what to do:
                 <ol>
                     <li>Check your "Manage/My Orders" tab for the order</li>
-                    <li>Check your email for confirmation</li>
                     <li>Wait a few minutes - processing can take time</li>
                     <li>Contact support@piqdrop.com with:
                         <ul>
@@ -462,14 +467,6 @@
     </div>
 
     <div class="section">
-        <h2>📍 Service Areas</h2>
-        <div class="highlight">
-            <p><strong>Currently Operating In:</strong></p>
-            <p>We're expanding our service coverage. Check the app to see if PiqDrop is available in your area. If not, sign up for notifications when we launch in your city!</p>
-        </div>
-    </div>
-
-    <div class="section">
         <h2>💡 Tips for Best Experience</h2>
         
         <h3>For Senders:</h3>
@@ -478,7 +475,6 @@
             <li>✅ Add clear package photos before sending</li>
             <li>✅ Be available at pickup time or arrange contactless pickup</li>
             <li>✅ Add delivery notes for special instructions</li>
-            <li>✅ Tip your rider for excellent service</li>
         </ul>
 
         <h3>For Riders:</h3>
@@ -495,8 +491,8 @@
         <h2>📱 App Links</h2>
         <p>Download our apps:</p>
         <ul>
-            <li><strong>PiqDrop (Sender App)</strong> - Available on iOS App Store</li>
-            <li><strong>PiqDrop Rider (Delivery App)</strong> - Available on iOS App Store</li>
+            <li><strong>PiqDrop (Sender App)</strong> - Available on iOS App Store and Google Play Store</li>
+            <li><strong>PiqDrop Rider (Delivery App)</strong> - Available on iOS App Store and Google Play Store</li>
         </ul>
     </div>
 

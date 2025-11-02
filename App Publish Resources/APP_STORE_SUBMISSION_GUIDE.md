@@ -62,7 +62,8 @@ Easy Package Sending
 - Create delivery requests in seconds
 - Add package photos and details
 - Set pickup and drop-off locations with precision
-- Track your package in real-time
+- Stay connected with your rider
+- Chat with your rider anytime
 
 Secure Payments
 - Pay safely with Stripe integration
@@ -102,11 +103,11 @@ PERFECT FOR:
 
 WHY CHOOSE PIQDROP?
 
-- Trusted Couriers - All drivers are verified
+- Trusted Couriers - Riders are verified
 - Competitive Pricing - Set your own price for delivery service
 - Fast Delivery - Quick pickup and drop-off
-- Secure Handling - Your packages are safe with us
-- 24/7 Support - Help when you need it
+- Handling with care
+- Support when you need it
 
 HOW IT WORKS:
 
@@ -138,10 +139,6 @@ https://piqdrop.com/support
 ```
 (Or use support@piqdrop.com if you don't have a support page)
 
-**Marketing URL (optional):**
-```
-https://piqdrop.com
-```
 
 **Privacy Policy URL (REQUIRED):**
 ```
@@ -259,8 +256,8 @@ HOW IT WORKS:
 6. Get paid instantly
 
 REQUIREMENTS:
-• Valid driver's document like passport
-• Reliable transportation (car, bike, scooter)
+• Government-issued ID (passport, national ID, etc.)
+• Reliable transportation (own vehicle, bike, or public transit/flights etc.)
 • Smartphone
 • 18+ years old
 
