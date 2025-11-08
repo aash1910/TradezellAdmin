@@ -2,12 +2,19 @@
 
 namespace App\Models;
 
-use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
-use App\User;
 use App\Models\Package;
 use App\Models\Review;
+use App\User;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Order
+ *
+ * Represents a sender package assignment to a dropper along with delivery progress tracking.
+ *
+ * @author Ashraful Islam
+ */
 class Order extends Model
 {
     use CrudTrait;
@@ -32,6 +39,7 @@ class Order extends Model
         'status',
         'delivery_status',
         'delivery_date',
+        'pickup_status',
     ];
 
     /*

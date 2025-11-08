@@ -368,6 +368,21 @@ class NotificationController extends Controller
         ]);
     }
 
+    // Package Picked Up
+    public static function createPickupStatusNotification($userId, $deliveryId, $pickupTime)
+    {
+        return Notification::create([
+            'user_id' => $userId,
+            'type' => 'pickup_status',
+            'title' => 'Package Picked Up',
+            'description' => 'Your package has been picked up by the rider.',
+            'data' => [
+                'delivery_id' => $deliveryId,
+                'pickup_time' => $pickupTime,
+            ],
+        ]);
+    }
+
     // Special Offer
     public static function createSpecialOfferNotification($userId, $promoCode, $validUntil, $discount)
     {

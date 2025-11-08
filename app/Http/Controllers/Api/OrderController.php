@@ -162,6 +162,64 @@ class OrderController extends Controller
     }
 
     /**
+     * Update pickup status of an order
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function updatePickupStatus(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'pickup_status' => 'required|integer|in:0,1',
+        ]);
+
+        $order = Order::findOrFail($id);
+
+        if ($order->dropper_id !== auth()->id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. You can only update your own orders.',
+            ], 403);
+        }
+
+        $oldPickupStatus = $order->pickup_status;
+
+        $order->update([
+            'pickup_status' => $request->pickup_status,
+        ]);
+
+        if ((int) $request->pickup_status === 1) {
+            \App\Http\Controllers\Api\NotificationController::createPickupStatusNotification(
+                $order->package->sender_id,
+                $order->id,
+                now()
+            );
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pickup status updated successfully',
+            'data' => [
+                'id' => $order->id,
+                'package' => [
+                    'id' => $order->package->id,
+                    'info' => $order->package->package_info,
+                ],
+                'dropper' => [
+                    'id' => $order->dropper->id,
+                    'name' => $order->dropper->full_name,
+                ],
+                'pickup_status' => [
+                    'old' => $oldPickupStatus,
+                    'new' => $order->pickup_status,
+                ],
+                'updated_at' => $order->updated_at,
+            ],
+        ]);
+    }
+
+    /**
      * Get authenticated dropper's order list with package details
      * 
      * @param Request $request
@@ -245,6 +303,7 @@ class OrderController extends Controller
                         'id' => $order->id,
                         'status' => $order->status,
                         'delivery_status' => $order->delivery_status,
+                        'pickup_status' => $order->pickup_status,
                         'dropper' => [
                             'id' => $order->dropper->id,
                             'name' => $order->dropper->first_name . ' ' . $order->dropper->last_name,

@@ -152,6 +152,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
     Route::patch('/orders/{id}/delivery-status', [OrderController::class, 'updateDeliveryStatus']);
+    Route::patch('/orders/{id}/pickup-status', [OrderController::class, 'updatePickupStatus']);
     Route::get('/orders/my-orders', [OrderController::class, 'myOrders']);
 
     // Review routes

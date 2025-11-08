@@ -77,10 +77,165 @@ class StripeWebhookController extends Controller
             $payment = Payment::where('stripe_payment_intent_id', $paymentIntent->id)->first();
             
             if ($payment) {
-                $payment->update([
+                $updateData = [
                     'status' => $paymentIntent->status,
                     'processed_at' => now(),
-                ]);
+                ];
+
+                // Fetch balance transaction data (available_on and fee)
+                try {
+                    // Get the latest charge from the payment intent
+                    if (isset($paymentIntent->latest_charge) && $paymentIntent->latest_charge) {
+                        Log::info('Fetching charge for payment intent: ' . $paymentIntent->id, [
+                            'latest_charge' => $paymentIntent->latest_charge
+                        ]);
+
+                        // Retrieve the charge with expanded balance transaction data
+                        $charge = \Stripe\Charge::retrieve(
+                            $paymentIntent->latest_charge,
+                            ['expand' => ['balance_transaction']]
+                        );
+
+                        $balanceTransaction = null;
+
+                        // If balance_transaction is already expanded as an object
+                        if (isset($charge->balance_transaction) && $charge->balance_transaction) {
+                            if (is_string($charge->balance_transaction)) {
+                                Log::info('Charge has balance_transaction ID, retrieving object', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'balance_transaction_id' => $charge->balance_transaction,
+                                ]);
+                                $balanceTransaction = \Stripe\BalanceTransaction::retrieve($charge->balance_transaction);
+                            } else {
+                                Log::info('Charge has expanded balance_transaction object', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'balance_transaction_id' => $charge->balance_transaction->id,
+                                ]);
+                                $balanceTransaction = $charge->balance_transaction;
+                            }
+                        }
+
+                        // Fallback: refresh payment intent with expanded charges to find balance transaction
+                        if (!$balanceTransaction) {
+                            Log::info('Charge has no balance_transaction, attempting fallback via expanded payment intent', [
+                                'payment_intent' => $paymentIntent->id,
+                                'charge_id' => $charge->id,
+                            ]);
+
+                            $refreshedPaymentIntent = \Stripe\PaymentIntent::retrieve(
+                                $paymentIntent->id,
+                                ['expand' => ['charges.data.balance_transaction']]
+                            );
+
+                            if (isset($refreshedPaymentIntent->charges) && isset($refreshedPaymentIntent->charges->data)) {
+                                foreach ($refreshedPaymentIntent->charges->data as $chargeData) {
+                                    if (!isset($chargeData->balance_transaction) || !$chargeData->balance_transaction) {
+                                        continue;
+                                    }
+
+                                    $bt = $chargeData->balance_transaction;
+                                    if (is_string($bt)) {
+                                        Log::info('Fallback charge has balance_transaction ID, retrieving object', [
+                                            'payment_intent' => $paymentIntent->id,
+                                            'charge_id' => $chargeData->id,
+                                            'balance_transaction_id' => $bt,
+                                        ]);
+                                        $balanceTransaction = \Stripe\BalanceTransaction::retrieve($bt);
+                                    } else {
+                                        Log::info('Fallback charge has expanded balance_transaction object', [
+                                            'payment_intent' => $paymentIntent->id,
+                                            'charge_id' => $chargeData->id,
+                                            'balance_transaction_id' => $bt->id,
+                                        ]);
+                                        $balanceTransaction = $bt;
+                                    }
+
+                                    // Prefer the balance transaction for the same charge, otherwise take the first available
+                                    if ($chargeData->id === $charge->id || $balanceTransaction) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Final attempt: query balance transactions by source (charge ID)
+                        if (!$balanceTransaction) {
+                            try {
+                                Log::info('Balance transaction still missing, querying by source', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'charge_id' => $charge->id,
+                                ]);
+
+                                $balanceTransactions = \Stripe\BalanceTransaction::all([
+                                    'limit' => 5,
+                                    'source' => $charge->id,
+                                ]);
+
+                                if (isset($balanceTransactions->data) && count($balanceTransactions->data) > 0) {
+                                    $balanceTransaction = $balanceTransactions->data[0];
+                                    Log::info('Balance transaction found via source query', [
+                                        'payment_intent' => $paymentIntent->id,
+                                        'charge_id' => $charge->id,
+                                        'balance_transaction_id' => $balanceTransaction->id,
+                                    ]);
+                                }
+                            } catch (\Exception $e) {
+                                Log::info('Source query for balance transaction failed', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'charge_id' => $charge->id,
+                                    'error' => $e->getMessage(),
+                                ]);
+                            }
+                        }
+
+                        if ($balanceTransaction) {
+                            // Add available_on date (convert from Unix timestamp)
+                            if (isset($balanceTransaction->available_on)) {
+                                $updateData['available_on'] = date('Y-m-d H:i:s', $balanceTransaction->available_on);
+                            } else {
+                                Log::info('Balance transaction has no available_on field', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'balance_transaction' => $balanceTransaction->id
+                                ]);
+                            }
+
+                            // Add Stripe fee (convert from cents to dollars)
+                            if (isset($balanceTransaction->fee)) {
+                                $updateData['stripe_fee'] = $balanceTransaction->fee / 100;
+                            } else {
+                                Log::info('Balance transaction has no fee field', [
+                                    'payment_intent' => $paymentIntent->id,
+                                    'balance_transaction' => $balanceTransaction->id
+                                ]);
+                            }
+
+                            Log::info('Balance transaction data fetched for payment: ' . $paymentIntent->id, [
+                                'available_on' => $updateData['available_on'] ?? null,
+                                'stripe_fee' => $updateData['stripe_fee'] ?? null,
+                            ]);
+                        } else {
+                            Log::info('Unable to locate balance transaction after fallback attempts', [
+                                'payment_intent' => $paymentIntent->id,
+                                'charge_id' => $charge->id,
+                            ]);
+                        }
+                    } else {
+                        Log::info('Payment intent has no latest_charge', [
+                            'payment_intent' => $paymentIntent->id,
+                            'has_latest_charge' => isset($paymentIntent->latest_charge),
+                            'latest_charge_value' => $paymentIntent->latest_charge ?? 'null'
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::info('Could not fetch balance transaction data: ' . $e->getMessage(), [
+                        'payment_intent' => $paymentIntent->id,
+                        'exception' => get_class($e),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    // Continue with payment update even if balance transaction fetch fails
+                }
+
+                $payment->update($updateData);
 
                 Log::info('Payment succeeded: ' . $paymentIntent->id);
             }

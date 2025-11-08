@@ -31,11 +31,19 @@ class WalletController extends Controller
     {
         try {
             $user = Auth::user();
+            $now = now();
             
-            // Calculate available balance (completed payments - withdrawals)
+            // Calculate available balance
+            // Include payments where:
+            // 1. Status is 'succeeded' AND
+            // 2. available_on is NULL (old records) OR available_on is in the past
             $completedPayments = Payment::where('user_id', $user->id)
                 ->where('payment_type', 'release')
                 ->where('status', 'succeeded')
+                ->where(function($query) use ($now) {
+                    $query->whereNull('available_on')
+                          ->orWhere('available_on', '<=', $now);
+                })
                 ->sum('amount');
 
             $withdrawals = Payment::where('user_id', $user->id)
@@ -45,10 +53,21 @@ class WalletController extends Controller
 
             $availableBalance = $completedPayments - abs($withdrawals);
 
-            // Calculate pending balance (payments that will be released when delivery is completed)
+            // Calculate pending balance
+            // Include payments where:
+            // 1. Status is 'succeeded' BUT available_on is in the future, OR
+            // 2. Status is 'pending' (not yet released from escrow)
             $pendingPayments = Payment::where('user_id', $user->id)
                 ->where('payment_type', 'release')
-                ->where('status', 'pending')
+                ->where(function($query) use ($now) {
+                    // Succeeded but not yet available (Stripe holding period)
+                    $query->where(function($q) use ($now) {
+                        $q->where('status', 'succeeded')
+                          ->where('available_on', '>', $now);
+                    })
+                    // Or still pending release from escrow
+                    ->orWhere('status', 'pending');
+                })
                 ->sum('amount');
 
             return response()->json([
@@ -95,6 +114,7 @@ class WalletController extends Controller
                     'status' => $payment->status,
                     'description' => $this->getTransactionDescription($payment),
                     'created_at' => $payment->created_at->toISOString(),
+                    'available_on' => $payment->available_on?->toISOString(),
                     'package_id' => $payment->package_id,
                     'order_id' => $payment->package?->order?->id,
                 ];
@@ -144,6 +164,7 @@ class WalletController extends Controller
                     'status' => $payment->status,
                     'description' => "Payment for package #{$payment->package_id} - {$payment->package->pickup_address} to {$payment->package->drop_address}",
                     'created_at' => $payment->created_at->toISOString(),
+                    'available_on' => $payment->available_on?->toISOString(),
                     'package_id' => $payment->package_id,
                     'order_id' => $payment->package?->order?->id,
                 ];
@@ -603,100 +624,20 @@ class WalletController extends Controller
     }
 
     /**
-     * Release payment from escrow when sender completes delivery
-     */
-    public function releasePayment($orderId)
-    {
-        try {
-            $order = Order::with(['package', 'dropper'])->findOrFail($orderId);
-            
-            // Check if order is completed
-            if ($order->status !== 'completed') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Order is not completed'
-                ], 400);
-            }
-
-            // Find the escrow payment for this package
-            $escrowPayment = Payment::where('package_id', $order->package_id)
-                ->where('payment_type', 'escrow')
-                ->where('status', 'succeeded')
-                ->first();
-
-            if (!$escrowPayment) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No escrow payment found for this package'
-                ], 404);
-            }
-
-            // Check if payment already released
-            $existingRelease = Payment::where('package_id', $order->package_id)
-                ->where('payment_type', 'release')
-                ->first();
-
-            if ($existingRelease) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Payment already released for this package'
-                ], 400);
-            }
-
-            // Create release payment record
-            $riderAmount = round($escrowPayment->amount * 0.90, 2); // 90% to rider
-            $commissionAmount = round($escrowPayment->amount * 0.10, 2); // 10% commission
-
-            $releasePayment = Payment::create([
-                'package_id' => $order->package_id,
-                'user_id' => $order->dropper_id,
-                'stripe_payment_intent_id' => 'release_' . $escrowPayment->stripe_payment_intent_id,
-                'amount' => $riderAmount,
-                'currency' => $escrowPayment->currency,
-                'status' => 'succeeded',
-                'payment_type' => 'release',
-                'processed_at' => now(),
-            ]);
-
-            // Record platform commission (optional, for tracking)
-            Payment::create([
-                'package_id' => $order->package_id,
-                'user_id' => 1, // or platform user ID if you have one
-                'stripe_payment_intent_id' => 'commission_' . $escrowPayment->stripe_payment_intent_id,
-                'amount' => $commissionAmount,
-                'currency' => $escrowPayment->currency,
-                'status' => 'succeeded',
-                'payment_type' => 'commission',
-                'processed_at' => now(),
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment released successfully',
-                'data' => [
-                    'amount' => $releasePayment->amount,
-                    'currency' => $releasePayment->currency,
-                    'dropper_id' => $order->dropper_id,
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Payment release error: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to release payment'
-            ], 500);
-        }
-    }
-
-    /**
      * Helper method to get available balance
      */
     private function getAvailableBalance($user)
     {
+        $now = now();
+        
+        // Only include payments that are actually available (not in Stripe holding period)
         $completedPayments = Payment::where('user_id', $user->id)
             ->where('payment_type', 'release')
             ->where('status', 'succeeded')
+            ->where(function($query) use ($now) {
+                $query->whereNull('available_on')
+                      ->orWhere('available_on', '<=', $now);
+            })
             ->sum('amount');
 
         $withdrawals = Payment::where('user_id', $user->id)

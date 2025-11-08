@@ -12,6 +12,9 @@ use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
 use Stripe\Exception\ApiErrorException;
+use Stripe\BalanceTransaction;
+use Stripe\Charge;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -581,56 +584,93 @@ class PaymentController extends Controller
     { 
         try {
             $user = Auth::user();
+            Log::info('Sender release initiated', [
+                'package_id' => $packageId,
+                'sender_id' => $user->id,
+            ]);
             
-            // Find the package and verify sender owns it
             $package = Package::where('id', $packageId)
                 ->where('sender_id', $user->id)
                 ->with(['order.dropper'])
                 ->first();
 
             if (!$package) {
+                Log::info('Sender release blocked: package not found or sender mismatch', [
+                    'package_id' => $packageId,
+                    'sender_id' => $user->id,
+                ]);
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Package not found or you are not the sender'
                 ], 404);
             }
 
-            // Check if order is completed
             if (!$package->order || $package->order->status !== 'completed') {
+                Log::info('Sender release blocked: order not completed', [
+                    'package_id' => $packageId,
+                    'order_status' => $package->order->status ?? null,
+                ]);
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Order is not completed yet'
                 ], 400);
             }
 
-            // Find the escrow payment
             $escrowPayment = Payment::where('package_id', $packageId)
                 ->where('payment_type', 'escrow')
                 ->where('status', 'succeeded')
                 ->first();
 
             if (!$escrowPayment) {
+                Log::info('Sender release blocked: escrow payment not found', [
+                    'package_id' => $packageId,
+                ]);
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No escrow payment found for this package'
                 ], 404);
             }
 
-            // Check if payment already released
+            if (is_null($escrowPayment->available_on) || is_null($escrowPayment->stripe_fee)) {
+                $balanceData = $this->fetchBalanceTransactionData($escrowPayment->stripe_payment_intent_id);
+
+                if ($balanceData) {
+                    $escrowPayment->update($balanceData);
+                    Log::info('Sender release backfilled settlement data', [
+                        'package_id' => $packageId,
+                        'payment_intent' => $escrowPayment->stripe_payment_intent_id,
+                        'available_on' => $balanceData['available_on'] ?? null,
+                        'stripe_fee' => $balanceData['stripe_fee'] ?? null,
+                    ]);
+                } else {
+                    Log::info('Sender release could not determine settlement data', [
+                        'package_id' => $packageId,
+                        'payment_intent' => $escrowPayment->stripe_payment_intent_id,
+                    ]);
+                }
+            }
+
             $existingRelease = Payment::where('package_id', $packageId)
                 ->where('payment_type', 'release')
                 ->first();
 
             if ($existingRelease) {
+                Log::info('Sender release blocked: release already exists', [
+                    'package_id' => $packageId,
+                    'release_payment_id' => $existingRelease->id,
+                ]);
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Payment already released for this package'
                 ], 400);
             }
 
-            // Create release payment record for the dropper
-            $riderAmount = round($escrowPayment->amount * 0.90, 2); // 90% to rider
-            $commissionAmount = round($escrowPayment->amount * 0.10, 2); // 10% commission
+            $riderAmount = round($escrowPayment->amount * 0.90, 2);
+            $commissionAmount = round($escrowPayment->amount * 0.10, 2);
 
             $releasePayment = Payment::create([
                 'package_id' => $packageId,
@@ -641,18 +681,26 @@ class PaymentController extends Controller
                 'status' => 'succeeded',
                 'payment_type' => 'release',
                 'processed_at' => now(),
+                'available_on' => $escrowPayment->available_on,
+                'stripe_fee' => $escrowPayment->stripe_fee,
             ]);
 
-            // Record platform commission (optional, for tracking)
             Payment::create([
                 'package_id' => $packageId,
-                'user_id' => 1, // or platform user ID if you have one
+                'user_id' => 1,
                 'stripe_payment_intent_id' => 'commission_' . $escrowPayment->stripe_payment_intent_id,
                 'amount' => $commissionAmount,
                 'currency' => $escrowPayment->currency,
                 'status' => 'succeeded',
                 'payment_type' => 'commission',
                 'processed_at' => now(),
+            ]);
+
+            Log::info('Sender release completed', [
+                'package_id' => $packageId,
+                'release_payment_id' => $releasePayment->id,
+                'dropper_id' => $package->order->dropper_id,
+                'available_on' => $releasePayment->available_on,
             ]);
 
             return response()->json([
@@ -667,11 +715,133 @@ class PaymentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Payment release error: ' . $e->getMessage());
+            Log::error('Payment release error: ' . $e->getMessage(), [
+                'package_id' => $packageId,
+                'exception' => get_class($e),
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to release payment'
             ], 500);
         }
+    }
+
+    private function fetchBalanceTransactionData(string $paymentIntentId): ?array
+    {
+        try {
+            $paymentIntent = PaymentIntent::retrieve(
+                $paymentIntentId,
+                ['expand' => ['charges.data.balance_transaction']]
+            );
+
+            if ($result = $this->extractBalanceDataFromCharges($paymentIntent->charges->data ?? [])) {
+                return $result;
+            }
+
+            $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
+            if ($result = $this->extractBalanceDataFromChargeSources($paymentIntent->charges->data ?? [])) {
+                return $result;
+            }
+
+            $charges = Charge::all([
+                'payment_intent' => $paymentIntentId,
+                'limit' => 5,
+            ]);
+
+            if ($result = $this->extractBalanceDataFromCharges($charges->data ?? [])) {
+                Log::info('Balance transaction retrieved via charges API', [
+                    'payment_intent' => $paymentIntentId,
+                    'available_on' => $result['available_on'] ?? null,
+                    'stripe_fee' => $result['stripe_fee'] ?? null,
+                ]);
+                return $result;
+            }
+
+        } catch (\Exception $e) {
+            Log::info('Failed to fetch balance transaction data for escrow release', [
+                'payment_intent' => $paymentIntentId,
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
+    }
+
+    private function extractBalanceDataFromCharges($charges): ?array
+    {
+        foreach ($charges as $charge) {
+            $balanceTransaction = $this->resolveBalanceTransactionFromCharge($charge);
+
+            if ($balanceTransaction) {
+                return $this->formatBalanceTransactionData($balanceTransaction);
+            }
+        }
+
+        return null;
+    }
+
+    private function extractBalanceDataFromChargeSources($charges): ?array
+    {
+        foreach ($charges as $charge) {
+            if (!isset($charge->id)) {
+                continue;
+            }
+
+            $balanceTransactions = BalanceTransaction::all([
+                'source' => $charge->id,
+                'limit' => 5,
+            ]);
+
+            if (isset($balanceTransactions->data) && count($balanceTransactions->data) > 0) {
+                return $this->formatBalanceTransactionData($balanceTransactions->data[0]);
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveBalanceTransactionFromCharge($charge)
+    {
+        if (!isset($charge->balance_transaction) || !$charge->balance_transaction) {
+            return null;
+        }
+
+        $balanceTransaction = $charge->balance_transaction;
+
+        if (is_string($balanceTransaction)) {
+            try {
+                return BalanceTransaction::retrieve($balanceTransaction);
+            } catch (\Exception $e) {
+                Log::info('Failed to retrieve balance transaction by ID for escrow release', [
+                    'balance_transaction_id' => $balanceTransaction,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        } elseif (is_object($balanceTransaction)) {
+            return $balanceTransaction;
+        }
+
+        return null;
+    }
+
+    private function formatBalanceTransactionData($balanceTransaction): array
+    {
+        $availableOn = null;
+        if (isset($balanceTransaction->available_on) && $balanceTransaction->available_on) {
+            $availableOn = Carbon::createFromTimestamp($balanceTransaction->available_on)->toDateTimeString();
+        }
+
+        $stripeFee = null;
+        if (isset($balanceTransaction->fee)) {
+            $stripeFee = $balanceTransaction->fee / 100;
+        }
+
+        return array_filter([
+            'available_on' => $availableOn,
+            'stripe_fee' => $stripeFee,
+        ], function ($value) {
+            return !is_null($value);
+        });
     }
 } 

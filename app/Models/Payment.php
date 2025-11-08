@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Package;
 use App\User;
 
+/**
+ * Payment Model
+ * 
+ * Handles payment transactions including escrow, releases, refunds, and withdrawals.
+ * Integrates with Stripe payment gateway to process and track payment information.
+ * 
+ * @author Ashraful Islam
+ */
 class Payment extends Model
 {
     use CrudTrait;
@@ -31,11 +39,15 @@ class Payment extends Model
         'payment_type', // 'escrow', 'release', 'refund'
         'refund_reason',
         'processed_at',
+        'available_on',
+        'stripe_fee',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'stripe_fee' => 'decimal:2',
         'processed_at' => 'datetime',
+        'available_on' => 'datetime',
     ];
 
     /*
