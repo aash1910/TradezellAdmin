@@ -60,6 +60,10 @@ return [
         'credentials' => storage_path('app/firebase/firebase_credentials.json'),
     ],
 
+    'cache_clear' => [
+        'token' => env('CACHE_CLEAR_TOKEN'),
+    ],
+
     'currency' => env('CURRENCY_CODE', 'USD'),
 
 ];

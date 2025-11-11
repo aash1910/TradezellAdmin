@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\Package;
 use App\Models\Order;
 use App\User;
+use App\Services\CurrencyConversionService;
 use Stripe\Stripe;
 use Stripe\Account;
 use Stripe\Transfer;
@@ -217,11 +218,17 @@ class WalletController extends Controller
                 ], 400);
             }
 
-            // Check main Stripe account balance
-            $mainAccountBalance = $this->getMainAccountBalance($currency);
-            if ($mainAccountBalance < $request->amount) {
+            // Check main Stripe account balance (in SEK)
+            // Convert USD withdrawal request to SEK for balance checking
+            $conversionService = new CurrencyConversionService();
+            $amountInSek = $conversionService->convertUsdToSek($request->amount);
+            
+            // Get actual SEK balance from Stripe
+            $sekBalance = $this->getMainAccountBalance('sek');
+            
+            if ($sekBalance < $amountInSek) {
                 // Check if there's a pending balance that will cover the shortfall
-                $availableDate = $this->getPendingBalanceAvailableDate($currency, $request->amount);
+                $availableDate = $this->getPendingBalanceAvailableDate('sek', $amountInSek);
                 
                 $message = $availableDate 
                     ? "You can withdraw funds on {$availableDate}"
@@ -251,20 +258,14 @@ class WalletController extends Controller
 
             // Get the first external account's currency for the transfer
             $externalAccount = $externalAccounts->data[0];
-            $transferCurrency = $externalAccount->currency ?? strtolower($currency);
+            $transferCurrency = 'sek'; // Always use SEK since that's what we have in Stripe
 
-            // If system currency differs from external account currency, log a warning
-            if (strtolower($currency) !== strtolower($transferCurrency)) {
-                Log::warning("Currency mismatch for user {$user->id}: System currency is {$currency}, but external account currency is {$transferCurrency}. Using external account currency.");
-            }
+            // Log currency conversion info
+            Log::info("Processing withdrawal for user {$user->id}: {$request->amount} USD cents ({$amount} USD) converted to {$amountInSek} SEK öre");
 
-            // Calculate amount in the external account's currency
-            // Note: For production, you may want to implement currency conversion
-            $transferAmount = $request->amount; // Amount in cents
-
-            // Create transfer to Stripe Connect account using the external account's currency
+            // Create transfer to Stripe Connect account using SEK
             $transfer = Transfer::create([
-                'amount' => $transferAmount,
+                'amount' => $amountInSek,
                 'currency' => $transferCurrency,
                 'destination' => $stripeAccount->id,
                 'metadata' => [
@@ -272,6 +273,8 @@ class WalletController extends Controller
                     'withdrawal_type' => 'wallet_withdrawal',
                     'system_currency' => $currency,
                     'transfer_currency' => $transferCurrency,
+                    'requested_amount_usd' => $request->amount,
+                    'converted_amount_sek' => $amountInSek,
                 ],
             ]);
 

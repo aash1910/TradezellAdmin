@@ -15,6 +15,7 @@ use App\Models\LandingPage;
 use App\Models\Page;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\Admin\CacheMaintenanceController;
 
 Route::get('/', function () {
     return redirect('/admin');
@@ -27,3 +28,7 @@ Route::get('/support', [PrivacyController::class, 'support']);
 // Stripe Connect wallet routes
 Route::get('/wallet/connect/refresh', [App\Http\Controllers\WalletConnectController::class, 'refresh']);
 Route::get('/wallet/connect/return', [App\Http\Controllers\WalletConnectController::class, 'return']);
+
+// Temporary maintenance route for clearing application cache. Remove after use.
+Route::get('/admin/maintenance/clear-cache', [CacheMaintenanceController::class, 'clear'])
+    ->name('admin.maintenance.clear-cache');
