@@ -127,4 +127,79 @@ class WalletConnectController extends Controller
             'color' => 'red'
         ]);
     }
+
+    /**
+     * Delete a Stripe Connect account
+     * 
+     * This method deletes a Stripe Connect account using the account ID.
+     * 
+     * @access public
+     * @author Ashraful Islam
+     * @param  \Illuminate\Http\Request $request The incoming request instance containing 'account_id' as query parameter
+     * @return \Illuminate\Http\JsonResponse A JSON response indicating success or failure of the account deletion
+     */
+    public function deleteAccount(Request $request)
+    {
+        try {
+            $request->validate([
+                'account_id' => 'required|string'
+            ]);
+
+            $accountId = $request->query('account_id');
+
+            Log::info('Deleting Stripe Connect account', [
+                'user_id' => Auth::id(),
+                'account_id' => $accountId
+            ]);
+
+            // Initialize Stripe client with API key from config
+            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+
+            // Delete the Stripe Connect account
+            $deleted = $stripe->accounts->delete($accountId, []);
+
+            Log::info('Stripe Connect account deleted successfully', [
+                'user_id' => Auth::id(),
+                'account_id' => $accountId,
+                'deleted' => $deleted->deleted ?? false
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Stripe Connect account deleted successfully',
+                'account_id' => $accountId,
+                'deleted' => $deleted->deleted ?? false
+            ], 200);
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API error while deleting account: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'account_id' => $request->query('account_id'),
+                'error_code' => $e->getStripeCode()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete Stripe Connect account: ' . $e->getMessage()
+            ], 400);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting Stripe Connect account: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'account_id' => $request->query('account_id')
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the account: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 } 

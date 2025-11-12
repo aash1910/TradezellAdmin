@@ -28,6 +28,8 @@ Route::get('/support', [PrivacyController::class, 'support']);
 // Stripe Connect wallet routes
 Route::get('/wallet/connect/refresh', [App\Http\Controllers\WalletConnectController::class, 'refresh']);
 Route::get('/wallet/connect/return', [App\Http\Controllers\WalletConnectController::class, 'return']);
+Route::get('/wallet/connect/delete-account', [App\Http\Controllers\WalletConnectController::class, 'deleteAccount'])
+    ->name('wallet.connect.delete-account');
 
 // Temporary maintenance route for clearing application cache. Remove after use.
 Route::get('/admin/maintenance/clear-cache', [CacheMaintenanceController::class, 'clear'])
