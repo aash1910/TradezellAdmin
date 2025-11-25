@@ -23,7 +23,6 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\StripeWebhookController;
-use App\Http\Controllers\Auth\FacebookController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use Illuminate\Support\Facades\Artisan;
@@ -55,15 +54,12 @@ Route::post('/verify-otp', [OtpController::class, 'verify']);
 Route::post('/resend-otp', [OtpController::class, 'resend']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/restore-account', [LoginController::class, 'restoreAccount']);
-Route::post('/facebook-login', [FacebookController::class, 'login']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 Route::get('/faqs', [FaqController::class, 'index']);
 Route::get('/data-deletion', [PrivacyController::class, 'showDataDeletionInfo']);
 Route::delete('/data-deletion', [PrivacyController::class, 'deleteUserData']);
 
-// Facebook Data Deletion Callback
-Route::post('/facebook-data-deletion', [PrivacyController::class, 'handleFacebookDataDeletion']);
 Route::get('/data-deletion-status', [PrivacyController::class, 'checkDeletionStatus']);
 Route::post('/process-pending-deletions', [PrivacyController::class, 'processPendingDeletions']);
 
