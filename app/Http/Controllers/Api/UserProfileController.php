@@ -90,11 +90,13 @@ class UserProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'gender' => 'required|string|max:255',
-            'nationality' => 'required|string|max:255',
-            'date_of_birth' => 'required|date',
-            'address' => 'required|string|max:255',
-            'mobile' => 'required|string|max:255',
+            'gender' => 'nullable|string|max:255|in:male,female,other',
+            'nationality' => 'nullable|string|max:255',
+            'date_of_birth' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+            'mobile' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -107,13 +109,13 @@ class UserProfileController extends Controller
 
         $user->first_name = $request->first_name;
         $user->last_name = $request->last_name;
-        $user->gender = $request->gender;
-        $user->nationality = $request->nationality;
-        $user->date_of_birth = $request->date_of_birth;
-        $user->address = $request->address;
-        $user->latitude = $request->latitude;
-        $user->longitude = $request->longitude;
-        $user->mobile = $request->mobile;
+        $user->gender = $request->gender ?? null;
+        $user->nationality = $request->nationality ?? null;
+        $user->date_of_birth = $request->date_of_birth ?? null;
+        $user->address = $request->address ?? null;
+        $user->latitude = $request->latitude ?? null;
+        $user->longitude = $request->longitude ?? null;
+        $user->mobile = $request->mobile ?? null;
         $user->save();
 
         return response()->json([

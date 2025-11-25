@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -19,6 +20,7 @@ class User extends Authenticatable
     use CrudTrait;
     use Notifiable;
     use HasApiTokens;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -26,7 +28,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'status', 'image', 'document', 'address', 'latitude', 'longitude', 'date_of_birth', 'gender', 'nationality', 'mobile', 'otp', 'is_verified', 'otp_expires_at', 'settings', 'role', 'facebook_id', 'stripe_account_id'
+        'first_name', 'last_name', 'email', 'password', 'status', 'image', 'document', 'address', 'latitude', 'longitude', 'date_of_birth', 'gender', 'nationality', 'mobile', 'otp', 'is_verified', 'otp_expires_at', 'settings', 'role', 'facebook_id', 'apple_id', 'stripe_account_id'
     ];
 
     /*

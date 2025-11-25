@@ -36,16 +36,69 @@ class PrivacyController extends Controller
     }
 
     /**
-     * Handle data deletion requests
+     * Display data deletion information
+     * This endpoint is used by Google Play Store to verify the data deletion URL
+     * 
+     * @author Ashraful Islam
+     */
+    public function showDataDeletionInfo()
+    {
+        return response()->json([
+            'title' => 'Data Deletion Request',
+            'description' => 'You can request deletion of your account and all associated data through the following methods:',
+            'methods' => [
+                [
+                    'method' => 'API Request',
+                    'description' => 'Send a DELETE request to this endpoint with your registered email address in the request body.',
+                    'endpoint' => config('app.url') . '/api/data-deletion',
+                    'example' => [
+                        'method' => 'DELETE',
+                        'url' => config('app.url') . '/api/data-deletion',
+                        'body' => [
+                            'email' => 'your-email@example.com'
+                        ]
+                    ]
+                ],
+                [
+                    'method' => 'Email Request',
+                    'description' => 'Send an email to our support team with your deletion request.',
+                    'email' => 'support@piqdrop.com',
+                    'subject' => 'Data Deletion Request'
+                ],
+                [
+                    'method' => 'In-App',
+                    'description' => 'Open the app, go to Account/Profile → Delete Account, and confirm the deletion request.'
+                ]
+            ],
+            'timeline' => [
+                'account_deactivation' => 'Immediate',
+                'data_deletion' => 'Within 30 days',
+                'confirmation' => 'Email sent when deletion is complete'
+            ],
+            'note' => 'Legal retention data may be retained only as required by law.',
+            'contact' => [
+                'email' => 'support@piqdrop.com',
+                'privacy_policy' => config('app.url') . '/privacy-policy'
+            ]
+        ]);
+    }
+
+    /**
+     * Handle data deletion requests (soft delete for payment data retention)
      */
     public function deleteUserData(Request $request)
     {
         try {
-            $request->validate([
-                'email' => 'required|email'
-            ]);
-
-            $user = User::where('email', $request->email)->first();
+            // If authenticated, use the authenticated user
+            if ($request->user()) {
+                $user = $request->user();
+            } else {
+                // Otherwise, require email
+                $request->validate([
+                    'email' => 'required|email'
+                ]);
+                $user = User::where('email', $request->email)->first();
+            }
 
             if (!$user) {
                 return response()->json([
@@ -53,29 +106,22 @@ class PrivacyController extends Controller
                 ], 404);
             }
 
-            // Delete user's profile image if exists
-            if ($user->image) {
-                Storage::delete('public/' . $user->image);
-            }
-
-            // Delete user's document if exists
-            if ($user->document) {
-                Storage::delete('public/' . $user->document);
-            }
+            // Soft delete the user (preserves payment data)
+            $user->delete(); // This will set deleted_at timestamp
 
             // Delete user's tokens
             $user->tokens()->delete();
 
-            // Delete the user
-            $user->delete();
+            // Note: We're NOT deleting images/documents to preserve payment records
+            // These can be cleaned up later via a scheduled job if needed
 
             return response()->json([
-                'message' => 'User data deleted successfully'
+                'message' => 'Account deleted successfully. Your data will be permanently removed within 30 days as per our privacy policy.'
             ]);
 
         } catch (\Exception $e) {
             Log::error('Data deletion failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to delete user data'], 500);
+            return response()->json(['error' => 'Failed to delete account'], 500);
         }
     }
 

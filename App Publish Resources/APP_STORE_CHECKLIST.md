@@ -117,7 +117,7 @@ PiqDrop Inc.
 #### PiqDrop Screenshots (Suggested order):
 1. **Home/Map Screen** - "Send Packages Anywhere, Anytime"
 2. **Create Delivery** - "Simple 3-Step Process"
-3. **Real-Time Tracking** - "Track Your Package Live"
+3. **Delivery Details** - "View Package Status"
 4. **Payment Screen** - "Secure Payment with Stripe"
 5. **Delivery History** - "View All Your Deliveries"
 

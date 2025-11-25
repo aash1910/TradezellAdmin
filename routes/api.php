@@ -54,10 +54,12 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/verify-otp', [OtpController::class, 'verify']);
 Route::post('/resend-otp', [OtpController::class, 'resend']);
 Route::post('/login', [LoginController::class, 'login']);
+Route::post('/restore-account', [LoginController::class, 'restoreAccount']);
 Route::post('/facebook-login', [FacebookController::class, 'login']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.reset');
 Route::get('/faqs', [FaqController::class, 'index']);
+Route::get('/data-deletion', [PrivacyController::class, 'showDataDeletionInfo']);
 Route::delete('/data-deletion', [PrivacyController::class, 'deleteUserData']);
 
 // Facebook Data Deletion Callback
@@ -77,6 +79,10 @@ Route::post('/firebase-custom-otp', [FirebasePhoneAuthController::class, 'sendCu
 
 // Google Login
 Route::post('/google-login', [LoginController::class, 'googleLogin']);
+
+// Apple Login
+Route::post('/apple-login', [LoginController::class, 'appleLogin']);
+Route::post('/apple-restore', [LoginController::class, 'restoreAppleAccount']);
 
 
 Route::get('/send_email_quote', function (Request $request) {
@@ -139,6 +145,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update-settings', [UserProfileController::class, 'updateSettings']);
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::post('/upload-image', [UserProfileController::class, 'uploadImage']);
+    Route::delete('/account/delete', [PrivacyController::class, 'deleteUserData']);
     
     // Package routes
     Route::post('/packages', [PackageController::class, 'store']);

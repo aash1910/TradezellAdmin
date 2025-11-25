@@ -316,7 +316,7 @@ https://piqdrop.com/privacy-policy
 ### Recommended Screenshots for PiqDrop:
 1. **Home/Map Screen** - "Send Packages Anywhere, Anytime"
 2. **Create Delivery** - "Simple 3-Step Delivery Process"
-3. **Real-time Tracking** - "Track Your Package Live"
+3. **Delivery Details** - "View Package Status"
 4. **Payment** - "Secure Payment with Stripe"
 5. **Delivery History** - "View All Your Deliveries"
 

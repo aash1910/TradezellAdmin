@@ -136,7 +136,7 @@ Apple reviewers need these accounts to test your apps:
 **PiqDrop Screenshots (suggested):**
 1. Home/Map screen
 2. Create delivery flow
-3. Real-time tracking
+3. Delivery status/details
 4. Payment screen
 5. Delivery history
 

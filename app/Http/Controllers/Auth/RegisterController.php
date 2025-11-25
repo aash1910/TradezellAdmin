@@ -20,8 +20,8 @@ class RegisterController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
-            'nationality' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'string', 'in:male,female,other,Male,Female,Other'],
+            'nationality' => ['nullable', 'string', 'max:255'],
+            'gender' => ['nullable', 'string', 'in:male,female,other,Male,Female,Other'],
             'role' => ['required', 'string', 'exists:roles,name'],
             'mobile' => ['sometimes', 'string', 'regex:/^\+?[1-9]\d{1,14}$/', 'unique:users,mobile'],
         ]);
@@ -48,8 +48,8 @@ class RegisterController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'nationality' => $request->nationality,
-            'gender' => ($request->gender == 'male' || $request->gender == 'Male') ? 'male' : (($request->gender == 'female' || $request->gender == 'Female') ? 'female' : 'other'),
+            'nationality' => $request->nationality ?? null,
+            'gender' => $request->gender ? (($request->gender == 'male' || $request->gender == 'Male') ? 'male' : (($request->gender == 'female' || $request->gender == 'Female') ? 'female' : 'other')) : null,
             'mobile' => $mobile,
             'status' => 'active',
         ]);
