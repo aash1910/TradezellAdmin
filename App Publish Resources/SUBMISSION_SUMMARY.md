@@ -1,6 +1,30 @@
 # App Store Submission - Summary & Next Steps
 
-**Date:** October 9, 2025
+**Date:** October 9, 2025  
+**Updated:** January 3, 2026 (Google Play Data Safety Form Fix)
+
+---
+
+## 🚨 CURRENT ISSUE - Google Play Data Safety Form (FIXED)
+
+**Problem:** PiqDrop app rejected with "Invalid Data safety form" error on January 3, 2026
+
+**Solution Created:**
+- ✅ **GOOGLE_PLAY_DATA_SAFETY_GUIDE.md** - Complete step-by-step guide for filling out the Data Safety form
+- ✅ **DATA_SAFETY_QUICK_CHECKLIST.md** - Quick reference checklist for form completion
+
+**Key Points:**
+- Must declare ALL data types: Name, Email, Phone, Location, Photos, Payment Info, Device IDs
+- Location must be marked as **"Only while app is in use"** (NOT "All the time")
+- Payment info must be marked as **BOTH "Collected" AND "Shared"** (because Stripe processes it)
+- Must list third parties: Stripe and Google (Sign-In & Maps)
+- Privacy policy URL: `https://piqdrop.com/privacy-policy`
+
+**Action Required:**
+1. Go to Google Play Console → Your App → Policy → App content → Data safety
+2. Follow the guide in `GOOGLE_PLAY_DATA_SAFETY_GUIDE.md`
+3. Use `DATA_SAFETY_QUICK_CHECKLIST.md` as a reference
+4. Resubmit the app after completing the form
 
 ---
 
