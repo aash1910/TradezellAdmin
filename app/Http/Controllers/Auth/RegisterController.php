@@ -15,6 +15,39 @@ class RegisterController extends Controller
 {
     public function register(Request $request)
     {
+        // Check if email exists with a different role before validation
+        $requestedRole = $request->role;
+        $email = $request->email;
+        
+        if ($email && $requestedRole) {
+            $existingUser = User::where('email', $email)->first();
+            
+            if ($existingUser) {
+                $existingUserRoles = $existingUser->roles->pluck('name')->toArray();
+                
+                // Check if existing user has a different role
+                if (in_array('sender', $existingUserRoles) && $requestedRole === 'dropper') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Validation failed',
+                        'errors' => [
+                            'email' => ['This Email account is already registered with a different role in Sender App. Please use a different Email account.']
+                        ]
+                    ], 422);
+                }
+                
+                if (in_array('dropper', $existingUserRoles) && $requestedRole === 'sender') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Validation failed',
+                        'errors' => [
+                            'email' => ['This Email account is already registered with a different role in Rider App. Please use a different Email account.']
+                        ]
+                    ], 422);
+                }
+            }
+        }
+        
         $validator = Validator::make($request->all(), [
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
