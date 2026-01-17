@@ -639,7 +639,107 @@ eas submit --platform ios --latest
 
 ---
 
+## 🔄 Post-Approval: Switch to Production Stripe Keys
+
+**⚠️ CRITICAL:** If your apps were approved with test Stripe keys, you MUST update them to production keys and release a new version.
+
+### Step 1: Get Your Production Stripe Keys
+
+1. Log into your [Stripe Dashboard](https://dashboard.stripe.com)
+2. Make sure you're in **Live mode** (toggle in top right)
+3. Go to **Developers** → **API keys**
+4. Copy your **Publishable key** (starts with `pk_live_...`)
+5. Copy your **Secret key** (starts with `sk_live_...`)
+
+### Step 2: Update App Configurations
+
+#### Update PiqDrop App
+Edit `/Volumes/ExAsh/Sites/PiqDrop/app.json`:
+```json
+"stripePublishableKey": "pk_live_YOUR_PRODUCTION_KEY_HERE"
+```
+
+#### Update PiqRider App
+Edit `/Volumes/ExAsh/Sites/PiqRider/app.json`:
+```json
+"stripePublishableKey": "pk_live_YOUR_PRODUCTION_KEY_HERE"
+```
+
+#### Update Backend (Laravel)
+Edit `/Volumes/ExAsh/Sites/PiqDropAdmin/.env`:
+```env
+STRIPE_KEY=pk_live_YOUR_PRODUCTION_PUBLISHABLE_KEY
+STRIPE_SECRET=sk_live_YOUR_PRODUCTION_SECRET_KEY
+```
+
+**Important:** After updating `.env`, restart your Laravel application/server.
+
+### Step 3: Increment Version Numbers
+
+**For PiqDrop:**
+- Update version in `/Volumes/ExAsh/Sites/PiqDrop/app.json` (e.g., `1.0.35` → `1.0.36`)
+
+**For PiqRider:**
+- Update version in `/Volumes/ExAsh/Sites/PiqRider/app.json` (e.g., `1.0.34` → `1.0.35`)
+
+### Step 4: Build New Production Builds
+
+```bash
+# For PiqDrop
+cd /Volumes/ExAsh/Sites/PiqDrop
+eas build --platform ios --profile production
+
+# For PiqRider
+cd /Volumes/ExAsh/Sites/PiqRider
+eas build --platform ios --profile production
+```
+
+### Step 5: Submit Updates to App Store
+
+```bash
+# For PiqDrop
+cd /Volumes/ExAsh/Sites/PiqDrop
+eas submit --platform ios --latest
+
+# For PiqRider
+cd /Volumes/ExAsh/Sites/PiqRider
+eas submit --platform ios --latest
+```
+
+### Step 6: Complete in App Store Connect
+
+1. Go to [App Store Connect](https://appstoreconnect.apple.com)
+2. For each app:
+   - Click on your app
+   - You'll see a new version waiting for submission
+   - Click "Prepare for Submission"
+   - **IMPORTANT:** Update the "What's New in This Version" section:
+     ```
+     Critical update: Switched to production payment processing. 
+     All payments will now be processed securely through Stripe.
+     ```
+   - Review all information
+   - Click "Submit for Review"
+
+### Step 7: Verify After Update Goes Live
+
+Once the update is approved and live:
+1. Test payment flow in both apps with real card (small amount)
+2. Verify backend is processing payments correctly
+3. Check Stripe Dashboard to confirm payments are coming through
+4. Monitor for any payment-related issues
+
+### ⚠️ Important Notes
+
+- **Users with the old version** will still use test keys until they update
+- Consider adding a message in-app prompting users to update
+- Monitor both old and new app versions for issues
+- Ensure backend is using production keys BEFORE new app versions go live
+
+---
+
 **Good luck with your submission! 🚀**
 
 *Created: October 9, 2025*
+*Updated: Post-approval production key migration instructions added*
 
