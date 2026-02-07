@@ -82,6 +82,10 @@ class UserCrudController extends BackpackUserCrudController
             ],
         ]);
 
+        // Enable bulk actions and add "Send Email" button
+        $this->crud->enableBulkActions();
+        $this->crud->addButton('bottom', 'send_bulk_email', 'view', 'vendor.backpack.crud.buttons.send_bulk_email', 'beginning');
+
         // Role Filter
         $this->crud->addFilter(
             [

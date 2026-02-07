@@ -43,4 +43,12 @@ Route::group([
     Route::get('message-messages/{userId}', 'MessageCrudController@getMessages')->name('backpack.message.messages');
     Route::get('message-cleanup-images', 'MessageCrudController@cleanupExternalImages')->name('backpack.message.cleanup-images');
     Route::crud('message', 'MessageCrudController');
+
+    // -----
+    // Bulk Email
+    // -----
+    Route::get('bulk-email/compose', 'BulkEmailController@compose')->name('backpack.bulk-email.compose');
+    Route::post('bulk-email/send', 'BulkEmailController@send')->name('backpack.bulk-email.send');
+    Route::get('bulk-email/history', 'BulkEmailController@history')->name('backpack.bulk-email.history');
+    Route::get('bulk-email/campaign/{id}/log', 'BulkEmailController@showLog')->name('backpack.bulk-email.log');
 }); // this should be the absolute last line of this file
