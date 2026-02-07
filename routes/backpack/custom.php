@@ -51,4 +51,5 @@ Route::group([
     Route::post('bulk-email/send', 'BulkEmailController@send')->name('backpack.bulk-email.send');
     Route::get('bulk-email/history', 'BulkEmailController@history')->name('backpack.bulk-email.history');
     Route::get('bulk-email/campaign/{id}/log', 'BulkEmailController@showLog')->name('backpack.bulk-email.log');
+    Route::post('bulk-email/campaign/{id}/retry-failed-batch', 'BulkEmailController@retryFailedBatch')->name('backpack.bulk-email.retry-failed-batch');
 }); // this should be the absolute last line of this file

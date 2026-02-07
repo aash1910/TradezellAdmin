@@ -162,4 +162,55 @@ class BulkEmailController extends Controller
             'logs' => $logs,
         ]);
     }
+
+    /**
+     * Retry sending to a batch of failed recipients. Updates existing logs.
+     * Returns JSON: { sent, failed, processed }
+     */
+    public function retryFailedBatch(Request $request, $id)
+    {
+        $campaign = BulkEmailCampaign::findOrFail($id);
+        $logIds = $request->input('log_ids', []);
+
+        if (empty($logIds)) {
+            return response()->json(['error' => 'No log IDs provided'], 400);
+        }
+
+        $logs = BulkEmailLog::where('campaign_id', $campaign->id)
+            ->whereIn('id', $logIds)
+            ->where('status', 'failed')
+            ->with('user')
+            ->get();
+
+        $sentCount = 0;
+        $failedCount = 0;
+
+        foreach ($logs as $log) {
+            if (!$log->user || !$log->user->email) {
+                $failedCount++;
+                continue;
+            }
+
+            try {
+                sleep(1);
+                Mail::to($log->user->email)->send(new BulkUserEmail(
+                    $campaign->subject,
+                    $campaign->body,
+                    $log->user
+                ));
+
+                $log->update(['status' => 'sent', 'sent_at' => now(), 'error_message' => null]);
+                $sentCount++;
+            } catch (\Exception $e) {
+                $log->update(['error_message' => $e->getMessage()]);
+                $failedCount++;
+            }
+        }
+
+        return response()->json([
+            'sent' => $sentCount,
+            'failed' => $failedCount,
+            'processed' => $sentCount + $failedCount,
+        ]);
+    }
 }
