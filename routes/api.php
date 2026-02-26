@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\StripeWebhookController;
+use App\Http\Controllers\Api\MomoPaymentController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Auth\PhoneAuthController;
 use Illuminate\Support\Facades\Artisan;
@@ -187,6 +188,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/payments/package/{packageId}', [PaymentController::class, 'getPackagePayment']);
     Route::post('/payments/release/{packageId}', [PaymentController::class, 'releasePaymentFromEscrow']);
 
+    // MTN MoMo payment routes
+    Route::post('/momo/request-to-pay', [MomoPaymentController::class, 'requestToPay']);
+    Route::get('/momo/status/{referenceId}', [MomoPaymentController::class, 'getStatus']);
+    Route::post('/momo/create-package', [MomoPaymentController::class, 'createPackageAfterPayment']);
+    Route::post('/momo/disburse', [MomoPaymentController::class, 'disburse']);
+
     // Wallet routes (for droppers)
     Route::get('/wallet/balance', [WalletController::class, 'getBalance']);
     Route::get('/wallet/transactions', [WalletController::class, 'getTransactions']);
@@ -203,6 +210,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Stripe webhook (no authentication required)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+
+// MTN MoMo callbacks (no authentication required — called by MTN servers)
+Route::post('/momo/callback', [MomoPaymentController::class, 'callback']);
+Route::post('/momo/callback/disbursement', [MomoPaymentController::class, 'disbursementCallback']);
 
 // Escrow refund processing endpoint
 Route::get('/escrow/process-refunds', function () {

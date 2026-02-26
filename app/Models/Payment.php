@@ -31,12 +31,15 @@ class Payment extends Model
     protected $fillable = [
         'package_id',
         'user_id',
+        'payment_gateway',
         'stripe_payment_intent_id',
         'stripe_payment_method_id',
+        'momo_reference_id',
+        'momo_phone_number',
         'amount',
         'currency',
         'status',
-        'payment_type', // 'escrow', 'release', 'refund'
+        'payment_type',
         'refund_reason',
         'processed_at',
         'available_on',
