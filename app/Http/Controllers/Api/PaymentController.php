@@ -442,26 +442,56 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Create Stripe refund
+            $reason = $request->reason ?? 'No dropper assigned';
+            $isMomo = ($escrowPayment->payment_gateway ?? 'stripe') === 'momo';
+
+            if ($isMomo) {
+                // MoMo refund: record in our system only (MTN reversal handled separately if needed)
+                $refundPayment = Payment::create([
+                    'package_id' => $package->id,
+                    'user_id' => $package->sender_id,
+                    'payment_gateway' => 'momo',
+                    'momo_reference_id' => 'refund_' . ($escrowPayment->momo_reference_id ?? $escrowPayment->id),
+                    'amount' => -$escrowPayment->amount,
+                    'currency' => $escrowPayment->currency,
+                    'status' => 'succeeded',
+                    'payment_type' => 'refund',
+                    'refund_reason' => $reason,
+                    'processed_at' => now(),
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Refund recorded successfully. The amount will be returned to your Mobile Money account per MTN processing.',
+                    'data' => [
+                        'status' => 'succeeded',
+                        'amount' => $refundPayment->amount,
+                        'currency' => $refundPayment->currency,
+                        'reason' => $refundPayment->refund_reason,
+                    ],
+                ]);
+            }
+
+            // Stripe refund
             $refund = Refund::create([
                 'payment_intent' => $escrowPayment->stripe_payment_intent_id,
                 'metadata' => [
                     'package_id' => $package->id,
-                    'user_id' => $package->sender_id, // Always use sender's ID for refund
-                    'reason' => $request->reason ?? 'No dropper assigned',
+                    'user_id' => $package->sender_id,
+                    'reason' => $reason,
                 ],
             ]);
 
-            // Create refund payment record
             $refundPayment = Payment::create([
                 'package_id' => $package->id,
-                'user_id' => $package->sender_id, // Always use sender's ID for refund
+                'user_id' => $package->sender_id,
+                'payment_gateway' => 'stripe',
                 'stripe_payment_intent_id' => $refund->id,
-                'amount' => -$escrowPayment->amount, // Negative amount for refund
+                'amount' => -$escrowPayment->amount,
                 'currency' => $escrowPayment->currency,
                 'status' => $refund->status,
                 'payment_type' => 'refund',
-                'refund_reason' => $request->reason ?? 'No dropper assigned',
+                'refund_reason' => $reason,
                 'processed_at' => now(),
             ]);
 
@@ -473,7 +503,7 @@ class PaymentController extends Controller
                     'amount' => $refundPayment->amount,
                     'currency' => $refundPayment->currency,
                     'reason' => $refundPayment->refund_reason,
-                ]
+                ],
             ]);
 
         } catch (ApiErrorException $e) {
