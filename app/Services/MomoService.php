@@ -150,12 +150,14 @@ class MomoService
             ->post($this->baseUrl . '/collection/v1_0/requesttopay', $body);
 
         if ($response->status() !== 202) {
+            $body = $response->body();
             Log::error('MoMo requestToPay failed', [
                 'reference_id' => $referenceId,
                 'status'       => $response->status(),
-                'body'         => $response->body(),
+                'body'         => $body,
             ]);
-            throw new \Exception('Failed to initiate MoMo payment: ' . $response->body());
+            $message = trim($body) !== '' ? $body : 'HTTP ' . $response->status();
+            throw new \Exception('Failed to initiate MoMo payment: ' . $message);
         }
 
         return ['reference_id' => $referenceId, 'status' => 'pending'];

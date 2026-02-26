@@ -46,7 +46,8 @@ class MomoPaymentController extends Controller
         try {
             $user        = Auth::user();
             $referenceId = Str::uuid()->toString();
-            $currency    = $request->currency ?? config('services.momo.currency', 'EUR');
+            // Always use server-configured MoMo currency (e.g. EUR for sandbox, XAF for Cameroon production)
+            $currency    = config('services.momo.currency', 'EUR');
             $packageId   = null;
 
             if ($request->package_id) {
@@ -364,7 +365,7 @@ class MomoPaymentController extends Controller
         try {
             $user        = Auth::user();
             $referenceId = Str::uuid()->toString();
-            $currency    = $request->currency ?? config('services.momo.currency', 'EUR');
+            $currency    = config('services.momo.currency', 'EUR');
 
             // Calculate available balance: released earnings minus existing withdrawals
             $released = Payment::where('user_id', $user->id)
