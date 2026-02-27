@@ -130,6 +130,7 @@ Keep `MOMO_CALLBACK_URL=https://admin.piqdrop.com/api/momo/callback` so the back
   - `createPackageAfterPayment` — Create package after successful MoMo escrow (mirrors Stripe flow).
   - `callback` — Public; MTN collection webhook; updates payment status.
   - `disburse` — Initiate rider payout to MoMo.
+  - `getDisbursementStatus` — GET status for a withdrawal by reference ID; syncs DB from MTN (useful when callbacks don’t fire, e.g. sandbox).
   - `disbursementCallback` — Public; MTN disbursement webhook; updates withdrawal status.
 
 ### API Routes (`routes/api.php`)
@@ -142,6 +143,7 @@ Keep `MOMO_CALLBACK_URL=https://admin.piqdrop.com/api/momo/callback` so the back
 | GET    | `/api/momo/status/{referenceId}`| `getStatus`                 |
 | POST   | `/api/momo/create-package`     | `createPackageAfterPayment` |
 | POST   | `/api/momo/disburse`           | `disburse`                  |
+| GET    | `/api/momo/disbursement/status/{referenceId}` | `getDisbursementStatus` (syncs status from MTN) |
 
 **Public (no auth — called by MTN):**
 
@@ -239,6 +241,7 @@ Phone numbers for Cameroon are in E.164 format (e.g. `2376XXXXXXXX`). Frontend h
 2. From PiqDrop, choose **Mobile Money**, enter phone `46733123454`, amount (e.g. 1 EUR), and submit.
 3. Backend creates a Request to Pay; sandbox may auto-approve or simulate. Use **Get status** (or app polling) to see status.
 4. For disbursement, from PiqRider choose **Mobile Money**, enter amount and test number, and submit.
+5. **Withdrawal stays “Pending”?** In sandbox, MTN may not call the disbursement callback. Opening the **Withdrawals** tab (or pull-to-refresh) triggers a sync: the backend fetches withdrawal history and, for any pending MoMo withdrawal, polls MTN’s status API and updates the payment. The list will then show **Completed** when MTN has processed it.
 
 ---
 

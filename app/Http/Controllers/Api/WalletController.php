@@ -11,6 +11,7 @@ use App\Models\Package;
 use App\Models\Order;
 use App\User;
 use App\Services\CurrencyConversionService;
+use App\Services\MomoService;
 use Stripe\Stripe;
 use Stripe\Account;
 use Stripe\Transfer;
@@ -20,8 +21,9 @@ use Carbon\Carbon;
 
 class WalletController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private MomoService $momoService
+    ) {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -351,14 +353,43 @@ class WalletController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate($limit);
 
+            // Sync status for pending MoMo withdrawals (callbacks may not fire in sandbox)
+            $withdrawals->getCollection()->each(function (Payment $payment) {
+                if (($payment->payment_gateway ?? 'stripe') !== 'momo') {
+                    return;
+                }
+                if (!in_array($payment->status, ['pending', 'processing'], true)) {
+                    return;
+                }
+                $ref = $payment->momo_reference_id;
+                if (!$ref) {
+                    return;
+                }
+                try {
+                    $result = $this->momoService->getDisbursementStatus($ref);
+                    $momoStatus = $result['status'] ?? '';
+                    $mapped = $this->momoService->mapMomoStatus($momoStatus);
+                    if ($mapped !== $payment->status) {
+                        $payment->update([
+                            'status'       => $mapped,
+                            'processed_at' => $mapped === 'succeeded' ? now() : $payment->processed_at,
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::debug('MoMo disbursement status sync skipped: ' . $e->getMessage());
+                }
+            });
+
             $formattedWithdrawals = $withdrawals->getCollection()->map(function ($payment) {
+                $isMomo = ($payment->payment_gateway ?? 'stripe') === 'momo';
                 return [
-                    'id' => $payment->stripe_payment_intent_id,
+                    'id' => $payment->momo_reference_id ?? $payment->stripe_payment_intent_id ?? (string) $payment->id,
                     'amount' => abs($payment->amount),
                     'currency' => $payment->currency,
                     'status' => $payment->status,
                     'estimated_arrival' => $payment->processed_at ? $payment->processed_at->addDays(3)->toISOString() : null,
                     'created_at' => $payment->created_at->toISOString(),
+                    'method' => $isMomo ? 'mobile_money' : 'bank',
                 ];
             });
 

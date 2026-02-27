@@ -193,6 +193,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/momo/status/{referenceId}', [MomoPaymentController::class, 'getStatus']);
     Route::post('/momo/create-package', [MomoPaymentController::class, 'createPackageAfterPayment']);
     Route::post('/momo/disburse', [MomoPaymentController::class, 'disburse']);
+    Route::get('/momo/disbursement/status/{referenceId}', [MomoPaymentController::class, 'getDisbursementStatus']);
 
     // Wallet routes (for droppers)
     Route::get('/wallet/balance', [WalletController::class, 'getBalance']);

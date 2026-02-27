@@ -426,6 +426,49 @@ class MomoPaymentController extends Controller
     }
 
     /**
+     * Get (and sync) disbursement status for a MoMo withdrawal.
+     * Use this to poll when a withdrawal is pending; also syncs DB from MTN.
+     *
+     * GET /api/momo/disbursement/status/{referenceId}
+     */
+    public function getDisbursementStatus(Request $request, string $referenceId)
+    {
+        $payment = Payment::where('momo_reference_id', $referenceId)
+            ->where('user_id', Auth::id())
+            ->where('payment_type', 'withdrawal')
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Withdrawal not found',
+            ], 404);
+        }
+
+        if (in_array($payment->status, ['pending', 'processing'], true)) {
+            try {
+                $result = $this->momoService->getDisbursementStatus($referenceId);
+                $momoStatus = $result['status'] ?? '';
+                $mapped = $this->momoService->mapMomoStatus($momoStatus);
+                $payment->update([
+                    'status'       => $mapped,
+                    'processed_at' => $mapped === 'succeeded' ? now() : $payment->processed_at,
+                ]);
+            } catch (\Exception $e) {
+                Log::debug('MoMo disbursement status check: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'reference_id' => $referenceId,
+                'status'       => $payment->fresh()->status,
+            ],
+        ]);
+    }
+
+    /**
      * Handle MTN MoMo disbursement callback.
      * This endpoint must be publicly accessible (no auth middleware).
      *
