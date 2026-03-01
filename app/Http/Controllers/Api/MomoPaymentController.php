@@ -366,24 +366,28 @@ class MomoPaymentController extends Controller
             $user        = Auth::user();
             $referenceId = Str::uuid()->toString();
             $currency    = config('services.momo.currency', 'EUR');
+            $currencyLower = strtolower($currency);
 
-            // Calculate available balance: released earnings minus existing withdrawals
+            // Calculate available MoMo-currency balance only
+            // Riders can only withdraw their MoMo-currency earnings via MoMo
             $released = Payment::where('user_id', $user->id)
                 ->where('payment_type', 'release')
                 ->where('status', 'succeeded')
+                ->whereRaw('LOWER(currency) = ?', [$currencyLower])
                 ->sum('amount');
 
             $withdrawn = Payment::where('user_id', $user->id)
                 ->where('payment_type', 'withdrawal')
                 ->whereIn('status', ['succeeded', 'processing', 'pending'])
+                ->whereRaw('LOWER(currency) = ?', [$currencyLower])
                 ->sum('amount');
 
-            $availableBalance = $released - $withdrawn;
+            $availableBalance = max(0, $released - abs($withdrawn));
 
             if ($request->amount > $availableBalance) {
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'Insufficient available balance',
+                    'message' => 'Insufficient available ' . strtoupper($currency) . ' balance',
                 ], 400);
             }
 

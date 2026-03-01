@@ -664,7 +664,9 @@ class PaymentController extends Controller
                 ], 404);
             }
 
-            if (is_null($escrowPayment->available_on) || is_null($escrowPayment->stripe_fee)) {
+            // Only attempt to back-fill Stripe settlement data for Stripe payments
+            $isMomoPayment = ($escrowPayment->payment_gateway ?? 'stripe') === 'momo';
+            if (!$isMomoPayment && (is_null($escrowPayment->available_on) || is_null($escrowPayment->stripe_fee))) {
                 $balanceData = $this->fetchBalanceTransactionData($escrowPayment->stripe_payment_intent_id);
 
                 if ($balanceData) {
@@ -702,10 +704,15 @@ class PaymentController extends Controller
             $riderAmount = round($escrowPayment->amount * 0.90, 2);
             $commissionAmount = round($escrowPayment->amount * 0.10, 2);
 
+            // For MoMo payments, stripe_payment_intent_id is null; use momo_reference_id as a stable identifier
+            $escrowRef = $escrowPayment->stripe_payment_intent_id ?? ('momo_' . $escrowPayment->momo_reference_id);
+
             $releasePayment = Payment::create([
                 'package_id' => $packageId,
                 'user_id' => $package->order->dropper_id,
-                'stripe_payment_intent_id' => 'release_' . $escrowPayment->stripe_payment_intent_id,
+                'stripe_payment_intent_id' => $isMomoPayment ? null : ('release_' . $escrowRef),
+                'payment_gateway' => $escrowPayment->payment_gateway ?? 'stripe',
+                'momo_reference_id' => $isMomoPayment ? ('release_' . $escrowPayment->momo_reference_id) : null,
                 'amount' => $riderAmount,
                 'currency' => $escrowPayment->currency,
                 'status' => 'succeeded',
@@ -718,7 +725,9 @@ class PaymentController extends Controller
             Payment::create([
                 'package_id' => $packageId,
                 'user_id' => 1,
-                'stripe_payment_intent_id' => 'commission_' . $escrowPayment->stripe_payment_intent_id,
+                'stripe_payment_intent_id' => $isMomoPayment ? null : ('commission_' . $escrowRef),
+                'payment_gateway' => $escrowPayment->payment_gateway ?? 'stripe',
+                'momo_reference_id' => $isMomoPayment ? ('commission_' . $escrowPayment->momo_reference_id) : null,
                 'amount' => $commissionAmount,
                 'currency' => $escrowPayment->currency,
                 'status' => 'succeeded',

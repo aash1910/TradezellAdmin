@@ -28,58 +28,41 @@ class WalletController extends Controller
     }
 
     /**
-     * Get wallet balance for the authenticated user
+     * Get wallet balance for the authenticated user.
+     * Returns separate balances per currency:
+     *   - usd: earnings from Stripe-paid packages (withdraw via Stripe only)
+     *   - xaf: earnings from MTN MoMo-paid packages (withdraw via MoMo only)
      */
     public function getBalance()
     {
         try {
             $user = Auth::user();
-            $now = now();
-            
-            // Calculate available balance
-            // Include payments where:
-            // 1. Status is 'succeeded' AND
-            // 2. available_on is NULL (old records) OR available_on is in the past
-            $completedPayments = Payment::where('user_id', $user->id)
-                ->where('payment_type', 'release')
-                ->where('status', 'succeeded')
-                ->where(function($query) use ($now) {
-                    $query->whereNull('available_on')
-                          ->orWhere('available_on', '<=', $now);
-                })
-                ->sum('amount');
 
-            $withdrawals = Payment::where('user_id', $user->id)
-                ->where('payment_type', 'withdrawal')
-                ->where('status', 'succeeded')
-                ->sum('amount');
+            $momoCurrency = strtolower(config('services.momo.currency', 'xaf'));
 
-            $availableBalance = $completedPayments - abs($withdrawals);
-
-            // Calculate pending balance
-            // Include payments where:
-            // 1. Status is 'succeeded' BUT available_on is in the future, OR
-            // 2. Status is 'pending' (not yet released from escrow)
-            $pendingPayments = Payment::where('user_id', $user->id)
-                ->where('payment_type', 'release')
-                ->where(function($query) use ($now) {
-                    // Succeeded but not yet available (Stripe holding period)
-                    $query->where(function($q) use ($now) {
-                        $q->where('status', 'succeeded')
-                          ->where('available_on', '>', $now);
-                    })
-                    // Or still pending release from escrow
-                    ->orWhere('status', 'pending');
-                })
-                ->sum('amount');
+            $usdBalance   = $this->buildCurrencyBalance($user, 'usd');
+            $momoBalance  = $this->buildCurrencyBalance($user, $momoCurrency);
 
             return response()->json([
                 'status' => 'success',
                 'data' => [
-                    'available_balance' => max(0, $availableBalance),
-                    'pending_balance' => max(0, $pendingPayments),
-                    'total_balance' => max(0, $availableBalance + $pendingPayments),
-                    'currency' => config('services.currency'),
+                    'balances' => [
+                        'usd' => [
+                            'available_balance' => $usdBalance['available'],
+                            'pending_balance'   => $usdBalance['pending'],
+                            'currency'          => 'USD',
+                        ],
+                        'momo' => [
+                            'available_balance' => $momoBalance['available'],
+                            'pending_balance'   => $momoBalance['pending'],
+                            'currency'          => strtoupper($momoCurrency),
+                        ],
+                    ],
+                    // Legacy fields kept so old code does not break
+                    'available_balance' => $usdBalance['available'],
+                    'pending_balance'   => $usdBalance['pending'],
+                    'total_balance'     => $usdBalance['available'] + $usdBalance['pending'],
+                    'currency'          => config('services.currency'),
                 ]
             ]);
 
@@ -90,6 +73,46 @@ class WalletController extends Controller
                 'message' => 'Failed to get wallet balance'
             ], 500);
         }
+    }
+
+    /**
+     * Calculate available and pending balance for a single currency.
+     */
+    private function buildCurrencyBalance($user, string $currency): array
+    {
+        $now = now();
+
+        $available = Payment::where('user_id', $user->id)
+            ->where('payment_type', 'release')
+            ->where('status', 'succeeded')
+            ->whereRaw('LOWER(currency) = ?', [$currency])
+            ->where(function ($q) use ($now) {
+                $q->whereNull('available_on')
+                  ->orWhere('available_on', '<=', $now);
+            })
+            ->sum('amount');
+
+        $withdrawn = Payment::where('user_id', $user->id)
+            ->where('payment_type', 'withdrawal')
+            ->where('status', 'succeeded')
+            ->whereRaw('LOWER(currency) = ?', [$currency])
+            ->sum('amount');
+
+        $pending = Payment::where('user_id', $user->id)
+            ->where('payment_type', 'release')
+            ->whereRaw('LOWER(currency) = ?', [$currency])
+            ->where(function ($q) use ($now) {
+                $q->where(function ($inner) use ($now) {
+                    $inner->where('status', 'succeeded')
+                          ->where('available_on', '>', $now);
+                })->orWhere('status', 'pending');
+            })
+            ->sum('amount');
+
+        return [
+            'available' => max(0, $available - abs($withdrawn)),
+            'pending'   => max(0, $pending),
+        ];
     }
 
     /**
@@ -202,12 +225,12 @@ class WalletController extends Controller
             $amount = $request->amount / 100; // Convert from cents to dollars
             $currency = $request->currency ?: config('services.currency');
 
-            // Check available balance
-            $availableBalance = $this->getAvailableBalance($user);
+            // Check available USD balance only (Stripe withdrawals are USD-only)
+            $availableBalance = $this->getAvailableBalance($user, 'usd');
             if ($amount > $availableBalance) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Insufficient available balance'
+                    'message' => 'Insufficient available USD balance'
                 ], 400);
             }
 
@@ -658,26 +681,32 @@ class WalletController extends Controller
     }
 
     /**
-     * Helper method to get available balance
+     * Helper method to get available balance, optionally filtered by currency.
+     * Pass null to sum across all currencies (legacy behaviour).
      */
-    private function getAvailableBalance($user)
+    private function getAvailableBalance($user, ?string $currency = null)
     {
         $now = now();
-        
-        // Only include payments that are actually available (not in Stripe holding period)
-        $completedPayments = Payment::where('user_id', $user->id)
+
+        $releasedQuery = Payment::where('user_id', $user->id)
             ->where('payment_type', 'release')
             ->where('status', 'succeeded')
-            ->where(function($query) use ($now) {
-                $query->whereNull('available_on')
-                      ->orWhere('available_on', '<=', $now);
-            })
-            ->sum('amount');
+            ->where(function ($q) use ($now) {
+                $q->whereNull('available_on')
+                  ->orWhere('available_on', '<=', $now);
+            });
 
-        $withdrawals = Payment::where('user_id', $user->id)
+        $withdrawalsQuery = Payment::where('user_id', $user->id)
             ->where('payment_type', 'withdrawal')
-            ->where('status', 'succeeded')
-            ->sum('amount');
+            ->where('status', 'succeeded');
+
+        if ($currency !== null) {
+            $releasedQuery->whereRaw('LOWER(currency) = ?', [strtolower($currency)]);
+            $withdrawalsQuery->whereRaw('LOWER(currency) = ?', [strtolower($currency)]);
+        }
+
+        $completedPayments = $releasedQuery->sum('amount');
+        $withdrawals       = $withdrawalsQuery->sum('amount');
 
         return max(0, $completedPayments - abs($withdrawals));
     }

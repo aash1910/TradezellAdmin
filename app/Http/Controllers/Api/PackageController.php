@@ -23,6 +23,7 @@ class PackageController extends Controller
             ->where('sender_id', auth()->id())
             ->with('sender:id,image')
             ->with('order.dropper')
+            ->with('escrowPayment')
             ->with(['order.review' => function($query) {
                 // Load all reviews for the order to check both sender and rider reviews
             }])
@@ -49,6 +50,8 @@ class PackageController extends Controller
                     'info' => $package->package_info,
                     'weight' => $package->weight,
                     'price' => $package->price,
+                    'currency' => strtoupper($package->escrowPayment?->currency ?? config('services.currency', 'USD')),
+                    'payment_gateway' => $package->escrowPayment?->payment_gateway ?? 'stripe',
                     'status' => $package->status,
                     'sender' => [
                         'id' => $package->sender->id,
@@ -195,6 +198,8 @@ class PackageController extends Controller
                 ],
                 'weight' => $package->weight,
                 'price' => $package->price,
+                'currency' => strtoupper(config('services.currency', 'USD')),
+                'payment_gateway' => 'stripe',
                 'pickup' => [
                     'name' => $package->pickup_name,
                     'mobile' => $package->pickup_mobile,
@@ -256,7 +261,7 @@ class PackageController extends Controller
 
         $validatedData = $request->validated();
         $package->update($validatedData);
-        $package->load('sender:id,image');
+        $package->load(['sender:id,image', 'escrowPayment']);
 
         return response()->json([
             'status' => 'success',
@@ -269,6 +274,8 @@ class PackageController extends Controller
                 ],
                 'weight' => $package->weight,
                 'price' => $package->price,
+                'currency' => strtoupper($package->escrowPayment?->currency ?? config('services.currency', 'USD')),
+                'payment_gateway' => $package->escrowPayment?->payment_gateway ?? 'stripe',
                 'pickup' => [
                     'name' => $package->pickup_name,
                     'mobile' => $package->pickup_mobile,
@@ -383,7 +390,7 @@ class PackageController extends Controller
             ->whereDoesntHave('order', function($query) {
                 $query->whereIn('status', ['active', 'completed']);
             })
-            ->with('sender:id,image,first_name,last_name,mobile')
+            ->with(['sender:id,image,first_name,last_name,mobile', 'escrowPayment'])
             ->orderBy('pickup_date', 'asc')
             ->orderBy('pickup_distance')
             ->get()
@@ -393,6 +400,8 @@ class PackageController extends Controller
                     'info' => $package->package_info,
                     'weight' => $package->weight,
                     'price' => $package->price,
+                    'currency' => strtoupper($package->escrowPayment?->currency ?? config('services.currency', 'USD')),
+                    'payment_gateway' => $package->escrowPayment?->payment_gateway ?? 'stripe',
                     'status' => $package->status,
                     'pickup_distance' => round($package->pickup_distance / 1000, 2), // Convert to kilometers
                     'drop_distance' => isset($package->drop_distance) ? round($package->drop_distance / 1000, 2) : null, // Convert to kilometers if exists

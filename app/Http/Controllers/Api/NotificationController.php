@@ -416,15 +416,18 @@ class NotificationController extends Controller
     }
 
     // Package Available for Riders
-    public static function createPackageAvailableNotification($userId, $packageId, $price, $pickupDistance, $dropoffDistance, $pickupAddress, $dropoffAddress)
+    public static function createPackageAvailableNotification($userId, $packageId, $price, $pickupDistance, $dropoffDistance, $pickupAddress, $dropoffAddress, $currency = 'USD')
     {
-        // Ensure distances are properly rounded to 2 decimal places
-        $pickupDistance = round($pickupDistance, 2);
-        $dropoffDistance = $dropoffDistance ? round($dropoffDistance, 2) : null;
+        // Ensure distances are properly rounded to 2 decimal places (store as string to avoid float precision in JSON)
+        $pickupDistanceRounded = number_format(round((float) $pickupDistance, 2), 2, '.', '');
+        $dropoffDistanceRounded = $dropoffDistance !== null && $dropoffDistance !== ''
+            ? number_format(round((float) $dropoffDistance, 2), 2, '.', '')
+            : null;
         
-        $description = $dropoffDistance 
-            ? "Package nearby - $" . $price . " (Pickup: " . $pickupDistance . "km, Dropoff: " . $dropoffDistance . "km)"
-            : "Package nearby - $" . $price . " (Distance: " . $pickupDistance . "km)";
+        $priceFormatted = self::formatNotificationPrice($price, $currency);
+        $description = $dropoffDistanceRounded
+            ? "Package nearby - " . $priceFormatted . " (Pickup: " . $pickupDistanceRounded . "km, Dropoff: " . $dropoffDistanceRounded . "km)"
+            : "Package nearby - " . $priceFormatted . " (Distance: " . $pickupDistanceRounded . "km)";
             
         return Notification::create([
             'user_id' => $userId,
@@ -434,12 +437,29 @@ class NotificationController extends Controller
             'data' => [
                 'package_id' => $packageId,
                 'price' => $price,
-                'pickup_distance' => $pickupDistance,
-                'dropoff_distance' => $dropoffDistance,
+                'currency' => $currency,
+                'pickup_distance' => $pickupDistanceRounded,
+                'dropoff_distance' => $dropoffDistanceRounded,
                 'pickup_address' => $pickupAddress,
                 'dropoff_address' => $dropoffAddress
             ]
         ]);
+    }
+
+    /**
+     * Format price for notification text (USD: $X.XX, XAF: X FCFA, EUR: X EUR).
+     */
+    private static function formatNotificationPrice($price, $currency)
+    {
+        $currency = strtoupper($currency ?? 'USD');
+        $num = is_numeric($price) ? (float) $price : 0;
+        if ($currency === 'XAF') {
+            return number_format($num, 0, '.', ' ') . ' FCFA';
+        }
+        if ($currency === 'EUR') {
+            return '€' . number_format($num, 2, '.', ',');
+        }
+        return '$' . number_format($num, 2, '.', ',');
     }
 
     /**
@@ -497,7 +517,7 @@ class NotificationController extends Controller
                 $allNotifications = $userNotifications->concat($adminNotifications)
                     ->sortByDesc('created_at')
                     ->map(function ($notification) {
-                        return [
+                        $payload = [
                             'id' => $notification->id,
                             'title' => $notification->title,
                             'description' => $notification->description,
@@ -508,6 +528,14 @@ class NotificationController extends Controller
                             'type' => $notification->type,
                             'isAdminNotification' => $notification->user_id === 1
                         ];
+                        $data = $notification->data;
+                        if (is_string($data)) {
+                            $data = json_decode($data, true);
+                        }
+                        if (!empty($data) && is_array($data)) {
+                            $payload['data'] = $data;
+                        }
+                        return $payload;
                     })
                     ->values();
             }
@@ -608,7 +636,7 @@ class NotificationController extends Controller
             })
             ->where('pickup_date', '>=', date('Y-m-d'))
             ->whereNotIn('id', $existingPackageIds) // Exclude packages that already have notifications
-            ->with('sender:id,image,first_name,last_name,mobile')
+            ->with(['sender:id,image,first_name,last_name,mobile', 'escrowPayment'])
             ->orderBy('pickup_date', 'asc')
             ->orderBy('pickup_distance')
             ->get();
@@ -619,6 +647,7 @@ class NotificationController extends Controller
         if ($packages && $packages->count() > 0) {
             foreach ($packages as $package) {
                 $pickupDistanceKm = round($package->pickup_distance / 1000, 2);
+                $currency = strtoupper($package->escrowPayment?->currency ?? config('services.currency', 'USD'));
                 
                 self::createPackageAvailableNotification(
                     $userId,
@@ -627,7 +656,8 @@ class NotificationController extends Controller
                     $pickupDistanceKm,
                     null,
                     $package->pickup_address,
-                    $package->drop_address
+                    $package->drop_address,
+                    $currency
                 );
                 $newNotifications++;
             }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Order;
+use App\Models\Payment;
 class Package extends Model
 {
     use CrudTrait;
@@ -112,6 +113,13 @@ class Package extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function escrowPayment()
+    {
+        return $this->hasOne(Payment::class)
+            ->where('payment_type', 'escrow')
+            ->where('status', 'succeeded');
     }
 
     public function getPackageInfoAttribute()

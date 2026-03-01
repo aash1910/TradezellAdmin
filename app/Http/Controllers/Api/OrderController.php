@@ -236,7 +236,7 @@ class OrderController extends Controller
         }
 
         $orders = Order::with(['package' => function($query) {
-                $query->with('sender:id,image,first_name,last_name,mobile'); // Include sender details
+                $query->with(['sender:id,image,first_name,last_name,mobile', 'escrowPayment']); // Include sender and payment details
             }])
             ->where('dropper_id', auth()->id())
             ->latest()
@@ -257,6 +257,8 @@ class OrderController extends Controller
                     'info' => $order->package->package_info,
                     'weight' => $order->package->weight,
                     'price' => $order->package->price,
+                    'currency' => strtoupper($order->package->escrowPayment?->currency ?? config('services.currency', 'USD')),
+                    'payment_gateway' => $order->package->escrowPayment?->payment_gateway ?? 'stripe',
                     'status' => $order->package->status,
                     'sender' => [
                         'id' => $order->package->sender->id,
