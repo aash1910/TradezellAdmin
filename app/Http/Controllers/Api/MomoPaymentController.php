@@ -430,8 +430,8 @@ class MomoPaymentController extends Controller
     }
 
     /**
-     * Get (and sync) disbursement status for a MoMo withdrawal.
-     * Use this to poll when a withdrawal is pending; also syncs DB from MTN.
+     * Get (and sync) disbursement status for a MoMo withdrawal or refund.
+     * Use this to poll when a withdrawal/refund is pending; also syncs DB from MTN.
      *
      * GET /api/momo/disbursement/status/{referenceId}
      */
@@ -439,13 +439,13 @@ class MomoPaymentController extends Controller
     {
         $payment = Payment::where('momo_reference_id', $referenceId)
             ->where('user_id', Auth::id())
-            ->where('payment_type', 'withdrawal')
+            ->whereIn('payment_type', ['withdrawal', 'refund'])
             ->first();
 
         if (!$payment) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Withdrawal not found',
+                'message' => 'Transfer not found',
             ], 404);
         }
 
@@ -494,9 +494,7 @@ class MomoPaymentController extends Controller
                 return response()->json(['status' => 'ok']);
             }
 
-            $payment = Payment::where('momo_reference_id', $referenceId)
-                ->where('payment_type', 'withdrawal')
-                ->first();
+            $payment = Payment::where('momo_reference_id', $referenceId)->first();
 
             if (!$payment) {
                 return response()->json(['status' => 'ok']);

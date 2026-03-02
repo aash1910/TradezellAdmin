@@ -122,6 +122,12 @@ class Package extends Model
             ->where('status', 'succeeded');
     }
 
+    public function refundPayment()
+    {
+        return $this->hasOne(Payment::class)
+            ->where('payment_type', 'refund');
+    }
+
     public function getPackageInfoAttribute()
     {
         return $this->pickup_name . ' (' . $this->pickup_address . ') - ' . $this->drop_name . ' (' . $this->drop_address . ') - ' . date('d M Y', strtotime($this->pickup_date)) . ' ' . date('H:i', strtotime($this->pickup_time));

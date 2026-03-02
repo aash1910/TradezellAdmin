@@ -131,7 +131,9 @@ Keep `MOMO_CALLBACK_URL=https://admin.piqdrop.com/api/momo/callback` so the back
   - `callback` — Public; MTN collection webhook; updates payment status.
   - `disburse` — Initiate rider payout to MoMo.
   - `getDisbursementStatus` — GET status for a withdrawal by reference ID; syncs DB from MTN (useful when callbacks don’t fire, e.g. sandbox).
-  - `disbursementCallback` — Public; MTN disbursement webhook; updates withdrawal status.
+  - `disbursementCallback` — Public; MTN disbursement webhook; updates withdrawal or refund status (any payment with matching `momo_reference_id`).
+
+**Refunds (MoMo-paid packages):** When a sender cancels a package paid via MoMo, the backend refunds by sending the escrow amount back to the sender’s Mobile Money account using the **Disbursement** API. `PaymentController::requestRefund` creates a refund `Payment` with `status=processing`, then calls `MomoService::disburse()` with the original payer’s phone from the escrow. The disbursement callback updates the refund to `succeeded` or `failed`. Ensure the Disbursement account has sufficient balance to cover both rider payouts and sender refunds.
 
 ### API Routes (`routes/api.php`)
 
@@ -293,3 +295,12 @@ MTN rejects the request because the **host** in `X-Callback-Url` does not match 
 **Fix:** See **§ 3.1 Callback URL** above: create new Collection (and if needed Disbursement) API users with `providerCallbackHost: "admin.piqdrop.com"`, generate new API keys, and update `MOMO_COLLECTION_USER_ID`, `MOMO_COLLECTION_API_KEY` (and disbursement vars) in `.env`. Keep `MOMO_CALLBACK_URL=https://admin.piqdrop.com/api/momo/callback`.
 
 **Temporary workaround (sandbox only):** Comment out or leave empty `MOMO_CALLBACK_URL` on the server so the backend does not send `X-Callback-Url`. Request to Pay may still be accepted; status updates will come only via **polling** in the app.
+
+### How to check disbursement or refund status (no portal UI)
+
+The MTN MoMo Developer Portal does not provide a “transaction history” or “look up by reference” page for individual transfers. To check the status of a disbursement (rider withdrawal or sender refund), use your own API, which calls MTN under the hood and syncs the DB:
+
+- **Endpoint:** `GET /api/momo/disbursement/status/{referenceId}`
+- **Auth:** Required (Bearer token for the user who owns the transfer: rider for withdrawals, sender for refunds).
+- **Example:** `GET https://admin.piqdrop.com/api/momo/disbursement/status/fb7edc32-9aef-4694-ae80-daaf23386579` with the sender’s auth header for a refund.
+- **Response:** `{ "status": "success", "data": { "reference_id": "...", "status": "succeeded" | "pending" | "processing" | "failed" } }`. If the transfer was still pending, the backend fetches the latest status from MTN and updates the payment record, then returns the current status.

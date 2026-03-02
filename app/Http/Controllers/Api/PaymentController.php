@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\Payment;
 use App\Models\Package;
+use App\Services\MomoService;
+use Illuminate\Support\Str;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
@@ -18,7 +20,7 @@ use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
-    public function __construct()
+    public function __construct(private MomoService $momoService)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
     }
@@ -446,28 +448,62 @@ class PaymentController extends Controller
             $isMomo = ($escrowPayment->payment_gateway ?? 'stripe') === 'momo';
 
             if ($isMomo) {
-                // MoMo refund: record in our system only (MTN reversal handled separately if needed)
+                $payerPhone = $escrowPayment->momo_phone_number ?? null;
+                if (empty($payerPhone)) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Cannot process refund: payer mobile number is missing. Please contact support.',
+                    ], 400);
+                }
+
+                $refundReferenceId = Str::uuid()->toString();
+                $refundAmount = (float) $escrowPayment->amount;
+                $refundCurrency = $escrowPayment->currency ?? config('services.momo.currency', 'EUR');
+
                 $refundPayment = Payment::create([
-                    'package_id' => $package->id,
-                    'user_id' => $package->sender_id,
-                    'payment_gateway' => 'momo',
-                    'momo_reference_id' => 'refund_' . ($escrowPayment->momo_reference_id ?? $escrowPayment->id),
-                    'amount' => -$escrowPayment->amount,
-                    'currency' => $escrowPayment->currency,
-                    'status' => 'succeeded',
-                    'payment_type' => 'refund',
-                    'refund_reason' => $reason,
-                    'processed_at' => now(),
+                    'package_id'         => $package->id,
+                    'user_id'            => $package->sender_id,
+                    'payment_gateway'    => 'momo',
+                    'momo_reference_id'  => $refundReferenceId,
+                    'momo_phone_number'  => $payerPhone,
+                    'amount'             => -$refundAmount,
+                    'currency'           => $refundCurrency,
+                    'status'             => 'processing',
+                    'payment_type'       => 'refund',
+                    'refund_reason'      => $reason,
                 ]);
+
+                try {
+                    $this->momoService->disburse(
+                        $refundAmount,
+                        $payerPhone,
+                        $refundReferenceId,
+                        $refundCurrency,
+                        'Refund: ' . ($reason ?: 'Package cancelled'),
+                        'Refund from PiqDrop'
+                    );
+                } catch (\Exception $e) {
+                    $refundPayment->update(['status' => 'failed']);
+                    Log::error('MoMo refund disbursement failed', [
+                        'package_id' => $package->id,
+                        'reference_id' => $refundReferenceId,
+                        'error' => $e->getMessage(),
+                    ]);
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Refund could not be sent to Mobile Money: ' . $e->getMessage(),
+                    ], 500);
+                }
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Refund recorded successfully. The amount will be returned to your Mobile Money account per MTN processing.',
+                    'message' => 'Refund has been initiated. The amount will be sent to your Mobile Money account shortly.',
                     'data' => [
-                        'status' => 'succeeded',
-                        'amount' => $refundPayment->amount,
-                        'currency' => $refundPayment->currency,
-                        'reason' => $refundPayment->refund_reason,
+                        'status'    => 'processing',
+                        'amount'    => $refundPayment->amount,
+                        'currency'  => $refundPayment->currency,
+                        'reason'    => $refundPayment->refund_reason,
+                        'reference_id' => $refundReferenceId,
                     ],
                 ]);
             }

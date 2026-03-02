@@ -23,7 +23,7 @@ class PackageController extends Controller
             ->where('sender_id', auth()->id())
             ->with('sender:id,image')
             ->with('order.dropper')
-            ->with('escrowPayment')
+            ->with(['escrowPayment', 'refundPayment'])
             ->with(['order.review' => function($query) {
                 // Load all reviews for the order to check both sender and rider reviews
             }])
@@ -110,6 +110,8 @@ class PackageController extends Controller
                     ] : [
                         'status' => $package->status === 'active' ? 'ongoing' : 'canceled'
                     ],
+                    'refund_status' => $package->refundPayment?->status,
+                    'refund_reference_id' => $package->refundPayment?->momo_reference_id,
                     'created_at' => $package->created_at,
                     'updated_at' => $package->updated_at,
                 ];
