@@ -53,9 +53,10 @@ class WalletController extends Controller
                             'currency'          => 'USD',
                         ],
                         'momo' => [
-                            'available_balance' => $momoBalance['available'],
-                            'pending_balance'   => $momoBalance['pending'],
-                            'currency'          => strtoupper($momoCurrency),
+                            'available_balance'   => $momoBalance['available'],
+                            'pending_balance'     => $momoBalance['pending'],
+                            'pending_withdrawal'  => $momoBalance['pending_withdrawal'] ?? 0,
+                            'currency'            => strtoupper($momoCurrency),
                         ],
                     ],
                     // Legacy fields kept so old code does not break
@@ -98,6 +99,12 @@ class WalletController extends Controller
             ->whereRaw('LOWER(currency) = ?', [$currency])
             ->sum('amount');
 
+        $pendingWithdrawal = Payment::where('user_id', $user->id)
+            ->where('payment_type', 'withdrawal')
+            ->whereIn('status', ['pending', 'processing'])
+            ->whereRaw('LOWER(currency) = ?', [$currency])
+            ->sum('amount');
+
         $pending = Payment::where('user_id', $user->id)
             ->where('payment_type', 'release')
             ->whereRaw('LOWER(currency) = ?', [$currency])
@@ -110,8 +117,9 @@ class WalletController extends Controller
             ->sum('amount');
 
         return [
-            'available' => max(0, $available - abs($withdrawn)),
-            'pending'   => max(0, $pending),
+            'available'           => max(0, $available - abs($withdrawn) - abs($pendingWithdrawal)),
+            'pending'             => max(0, $pending),
+            'pending_withdrawal'  => abs($pendingWithdrawal),
         ];
     }
 
