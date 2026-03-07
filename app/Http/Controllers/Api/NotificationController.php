@@ -447,15 +447,15 @@ class NotificationController extends Controller
     }
 
     /**
-     * Format price for notification text stored in DB (USD: $X.XX, XAF/EUR: X,XXX.XX FCFA).
-     * EUR is formatted as FCFA for MoMo sandbox (e.g. "3,200.00 FCFA").
+     * Format price for notification text stored in DB (USD: $X.XX, XAF/EUR: X,XXX.XX CFA).
+     * EUR is formatted as CFA for MoMo sandbox (e.g. "3,200.00 CFA").
      */
     private static function formatNotificationPrice($price, $currency)
     {
         $currency = strtoupper($currency ?? 'USD');
         $num = is_numeric($price) ? (float) $price : 0;
         if ($currency === 'XAF' || $currency === 'EUR') {
-            return number_format($num, 2, '.', ',') . ' FCFA';
+            return number_format($num, 2, '.', ',') . ' CFA';
         }
         return '$' . number_format($num, 2, '.', ',');
     }
