@@ -89,7 +89,7 @@
 </head>
 <body>
     <h1>Privacy Policy</h1>
-    <p class="last-updated"><strong>Last updated: October 09, 2025</strong></p>
+    <p class="last-updated"><strong>Last updated: March 18, 2026</strong></p>
 
     <div class="section">
         <h2>1. Introduction</h2>
@@ -490,8 +490,8 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e0e0e0; color: #666;">
-        <p><em>This privacy policy is effective as of October 09, 2025</em></p>
-        <p>© 2025 PiqDrop. All rights reserved.</p>
+        <p><em>This privacy policy is effective as of March 18, 2026</em></p>
+        <p>© 2026 PiqDrop. All rights reserved.</p>
     </div>
 
 </body>
