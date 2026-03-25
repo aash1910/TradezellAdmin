@@ -129,34 +129,42 @@ class UserProfileController extends Controller
     {
         $user = $request->user();
         $validator = Validator::make($request->all(), [
-            'settings' => 'required|array',
-            'settings.language' => 'nullable|string|in:en,es,hi,ar,pt,ru,ja,fr,sv,de,zh',
-            'settings.place' => 'nullable|array',
-            'settings.place.pickup' => 'nullable|array',
-            'settings.place.dropoff' => 'nullable|array',
-            'settings.place.pickup.address' => 'nullable|string',
-            'settings.place.pickup.latitude' => 'nullable|numeric',
-            'settings.place.pickup.longitude' => 'nullable|numeric',
-            'settings.place.dropoff.address' => 'nullable|string',
-            'settings.place.dropoff.latitude' => 'nullable|numeric',
-            'settings.place.dropoff.longitude' => 'nullable|numeric',
+            'settings'                              => 'required|array',
+            'settings.language'                     => 'nullable|string|in:en,es,hi,ar,pt,ru,ja,fr,sv,de,zh',
+            // Tradezell discovery settings
+            'settings.account_role'                 => 'nullable|string|in:trader,seller,buyer',
+            'settings.max_distance'                 => 'nullable|integer|min:1|max:300',
+            'settings.global_search'                => 'nullable|boolean',
+            'settings.enable_discovery'             => 'nullable|boolean',
+            'settings.discovery_location'           => 'nullable|array',
+            'settings.discovery_location.name'      => 'nullable|string|max:255',
+            'settings.discovery_location.address'   => 'nullable|string|max:500',
+            'settings.discovery_location.latitude'  => 'nullable|numeric',
+            'settings.discovery_location.longitude' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        $user->settings = json_encode($request->settings); 
+        // Merge into existing settings so partial updates are safe
+        $existing = $user->settings
+            ? (is_array($user->settings) ? $user->settings : json_decode($user->settings, true))
+            : [];
+
+        $merged = array_merge($existing ?? [], $request->settings);
+        $user->settings = json_encode($merged);
         $user->save();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Settings updated successfully',
-            'settings' => $user->settings
+            'status'   => 'success',
+            'message'  => 'Settings updated successfully',
+            'settings' => json_decode($user->settings, true),
+            'user'     => $user,
         ]);
     }
 } 

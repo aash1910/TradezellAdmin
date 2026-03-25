@@ -919,4 +919,25 @@ class PaymentController extends Controller
             return !is_null($value);
         });
     }
+
+    // ── Tradezell listing-based payment aliases ────────────────────────────────
+
+    /**
+     * POST /payments/create-listing
+     * Tradezell alias: records payment tied to a listing_id (for sell-type listings).
+     */
+    public function createListingAfterPayment(Request $request)
+    {
+        // For V1 MVP, delegate to the same escrow create flow with listing_id mapped to package_id
+        // A full re-implementation per V2 can separate the domain entirely
+        return $this->createPackageAfterPayment($request);
+    }
+
+    /**
+     * GET /payments/listing/{listingId}
+     */
+    public function getListingPayment($listingId)
+    {
+        return $this->getPackagePayment($listingId);
+    }
 } 

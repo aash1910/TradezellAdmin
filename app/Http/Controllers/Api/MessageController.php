@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Message;
 use App\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -65,10 +67,10 @@ class MessageController extends Controller
             if (!$hasSupportConversation) {
                 $conversationList[] = [
                     'user_id' => 1,
-                    'name' => 'Support Service',
+                    'name' => 'Tradezell Support',
                     'image' => null,
                     'mobile' => null,
-                    'last_message' => 'Welcome to PiqDrop Support! How can we help you today?',
+                    'last_message' => 'Welcome to Tradezell Support! How can we help you today?',
                     'last_message_time' => now(),
                     'is_support' => true,
                     'unread_count' => $this->getUnreadCount($user->id, 1)
@@ -127,15 +129,34 @@ class MessageController extends Controller
             ], 422);
         }
 
+        $sender = $request->user();
+
         $message = Message::create([
-            'sender_id' => $request->user()->id,
+            'sender_id'   => $sender->id,
             'receiver_id' => $request->receiver_id,
-            'message' => $request->message
+            'message'     => $request->message,
         ]);
 
+        // Write an in-app notification for the receiver
+        try {
+            $senderName = trim("{$sender->first_name} {$sender->last_name}");
+            DB::table('notifications')->insert([
+                'user_id'     => $request->receiver_id,
+                'title'       => "New message from {$senderName}",
+                'description' => mb_strimwidth($request->message, 0, 100, '…'),
+                'type'        => 'message',
+                'data'        => json_encode(['sender_id' => $sender->id, 'message_id' => $message->id]),
+                'is_read'     => false,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create message notification: ' . $e->getMessage());
+        }
+
         return response()->json([
-            'status' => 'success',
-            'message' => $message
+            'status'  => 'success',
+            'message' => $message,
         ]);
     }
 

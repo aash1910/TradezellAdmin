@@ -15,55 +15,22 @@ class RegisterController extends Controller
 {
     public function register(Request $request)
     {
-        // Check if email exists with a different role before validation
-        $requestedRole = $request->role;
-        $email = $request->email;
-        
-        if ($email && $requestedRole) {
-            $existingUser = User::where('email', $email)->first();
-            
-            if ($existingUser) {
-                $existingUserRoles = $existingUser->roles->pluck('name')->toArray();
-                
-                // Check if existing user has a different role
-                if (in_array('sender', $existingUserRoles) && $requestedRole === 'dropper') {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Validation failed',
-                        'errors' => [
-                            'email' => ['This Email account is already registered with a different role in Sender App. Please use a different Email account.']
-                        ]
-                    ], 422);
-                }
-                
-                if (in_array('dropper', $existingUserRoles) && $requestedRole === 'sender') {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Validation failed',
-                        'errors' => [
-                            'email' => ['This Email account is already registered with a different role in Rider App. Please use a different Email account.']
-                        ]
-                    ], 422);
-                }
-            }
-        }
-        
         $validator = Validator::make($request->all(), [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
-            'nationality' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', 'string', 'in:male,female,other,Male,Female,Other'],
-            'role' => ['required', 'string', 'exists:roles,name'],
-            'mobile' => ['sometimes', 'string', 'regex:/^\+?[1-9]\d{1,14}$/', 'unique:users,mobile'],
+            'first_name'   => ['required', 'string', 'max:255'],
+            'last_name'    => ['required', 'string', 'max:255'],
+            'email'        => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'     => ['required', 'string', Password::min(8)->mixedCase()->numbers(), 'confirmed'],
+            'nationality'  => ['nullable', 'string', 'max:255'],
+            'gender'       => ['nullable', 'string', 'in:male,female,other,Male,Female,Other'],
+            'account_role' => ['nullable', 'string', 'in:trader,seller,buyer'],
+            'mobile'       => ['sometimes', 'string', 'regex:/^\+?[1-9]\d{1,14}$/', 'unique:users,mobile'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
@@ -76,47 +43,51 @@ class RegisterController extends Controller
             }
         }
 
+        $accountRole = $request->account_role ?? 'trader';
+
         $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'email'       => $request->email,
+            'password'    => Hash::make($request->password),
             'nationality' => $request->nationality ?? null,
-            'gender' => $request->gender ? (($request->gender == 'male' || $request->gender == 'Male') ? 'male' : (($request->gender == 'female' || $request->gender == 'Female') ? 'female' : 'other')) : null,
-            'mobile' => $mobile,
-            'status' => 'active',
+            'gender'      => $request->gender
+                ? (strtolower($request->gender) === 'male' ? 'male' : (strtolower($request->gender) === 'female' ? 'female' : 'other'))
+                : null,
+            'mobile'  => $mobile,
+            'status'  => 'active',
+            'settings' => json_encode(['account_role' => $accountRole]),
         ]);
 
-        // Assign role to user (default to 'user' if not specified)
-        $roleName = $request->role ?? 'user';
-        $role = Role::where('name', $roleName)->first();
+        // Assign default Spatie role for permission management
+        $role = Role::where('name', 'user')->first();
         if ($role) {
             $user->assignRole($role);
         }
 
-        // Create token for the user
+        // Create Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         // Generate and send OTP
         $otp = rand(1000, 9999);
         $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(1),
-            'is_verified' => false,
+            'otp'            => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
+            'is_verified'    => false,
         ]);
 
         $user->notify(new SendOtpNotification($otp));
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'User registered successfully',
-            'data' => [
-                'user' => $user,
-                'role' => $roleName,
-                'token' => $token,
+            'data'    => [
+                'user'                 => $user,
+                'account_role'         => $accountRole,
+                'token'                => $token,
                 'requires_verification' => true,
-                'message' => 'Please verify your account using the OTP sent to your email'
+                'message'              => 'Please verify your account using the OTP sent to your email',
             ]
         ], 201);
     }
-} 
+}

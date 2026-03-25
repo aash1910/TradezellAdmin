@@ -105,8 +105,8 @@ class LoginController extends Controller
     public function googleLogin(Request $request)
     {
         $request->validate([
-            'id_token' => 'required|string',
-            'role' => 'required|string|in:sender,dropper'
+            'id_token'     => 'required|string',
+            'account_role' => 'nullable|string|in:trader,seller,buyer',
         ]);
 
         try {
@@ -122,40 +122,34 @@ class LoginController extends Controller
             $lastName = $payload['family_name'] ?? '';
             $image = $payload['picture'] ?? '';
 
+            $accountRole = $request->account_role ?? 'trader';
+
             // Find or create user
             $user = \App\User::where('email', $email)->first();
             if (!$user) {
                 $userData = [
                     'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $email,
-                    'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
+                    'last_name'  => $lastName,
+                    'email'      => $email,
+                    'password'   => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
                     'is_verified' => 1,
-                    'status' => 'active',
+                    'status'     => 'active',
+                    'settings'   => json_encode(['account_role' => $accountRole]),
                 ];
 
-                // Add profile picture if available
                 if ($image) {
                     $userData['image'] = $this->downloadAndConvertImage($image);
                 }
 
                 $user = \App\User::create($userData);
-                
-                // Assign role
-                $roleName = $request->role ?? 'user';
-                $role = \Spatie\Permission\Models\Role::where('name', $roleName)->first();
+
+                $role = \Spatie\Permission\Models\Role::where('name', 'user')->first();
                 if ($role) {
                     $user->assignRole($role);
                 }
             } else {
-                // Update profile picture if not set and available
                 if (!$user->image && $image) {
                     $user->update(['image' => $this->downloadAndConvertImage($image)]);
-                }
-
-                // Check role if provided
-                if ($request->has('role') && !$user->roles->contains('name', $request->role)) {
-                    return response()->json(['message' => 'User does not have the specified role'], 403);
                 }
             }
 
@@ -180,10 +174,10 @@ class LoginController extends Controller
     {
         $request->validate([
             'identity_token' => 'required|string',
-            'role' => 'required|string|in:sender,dropper',
-            'email' => 'nullable|email',
-            'first_name' => 'nullable|string|max:255',
-            'last_name' => 'nullable|string|max:255',
+            'account_role'   => 'nullable|string|in:trader,seller,buyer',
+            'email'          => 'nullable|email',
+            'first_name'     => 'nullable|string|max:255',
+            'last_name'      => 'nullable|string|max:255',
         ]);
 
         try {
@@ -262,24 +256,25 @@ class LoginController extends Controller
                 })
                 ->first();
                 
+            $accountRole = $request->account_role ?? 'trader';
+
             if (!$user) {
                 // Create new user
                 try {
                     $userData = [
-                        'first_name' => $firstName ?: 'Apple',
-                        'last_name' => $lastName ?: 'User',
-                        'email' => $email,
-                        'password' => Hash::make(Str::random(24)),
-                        'apple_id' => $appleUserId,
+                        'first_name'  => $firstName ?: 'Apple',
+                        'last_name'   => $lastName ?: 'User',
+                        'email'       => $email,
+                        'password'    => Hash::make(Str::random(24)),
+                        'apple_id'    => $appleUserId,
                         'is_verified' => 1,
-                        'status' => 'active',
+                        'status'      => 'active',
+                        'settings'    => json_encode(['account_role' => $accountRole]),
                     ];
 
                     $user = User::create($userData);
-                    
-                    // Assign role
-                    $roleName = $request->role ?? 'user';
-                    $role = \Spatie\Permission\Models\Role::where('name', $roleName)->first();
+
+                    $role = \Spatie\Permission\Models\Role::where('name', 'user')->first();
                     if ($role) {
                         $user->assignRole($role);
                     }
@@ -457,8 +452,8 @@ class LoginController extends Controller
     {
         $request->validate([
             'identity_token' => 'required|string',
-            'email' => 'nullable|email',
-            'role' => 'required|string|in:sender,dropper',
+            'email'          => 'nullable|email',
+            'account_role'   => 'nullable|string|in:trader,seller,buyer',
         ]);
 
         try {
