@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedTinyInteger('pickup_status')->default(0)->after('delivery_status');
+            // Legacy ordering: `delivery_status` may not exist on fresh installs yet.
+            // Add column without relying on the referenced ordering column.
+            $table->unsignedTinyInteger('pickup_status')->default(0);
         });
     }
 

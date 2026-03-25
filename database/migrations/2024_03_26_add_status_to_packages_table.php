@@ -12,17 +12,26 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Tradezell MVP doesn't rely on legacy `packages` yet.
+        // This migration can run before `packages` table creation (timestamp ordering),
+        // so guard to keep `php artisan migrate` working from scratch.
+        if (!Schema::hasTable('packages')) {
+            return;
+        }
+
         Schema::table('packages', function (Blueprint $table) {
             $table->enum('status', ['active', 'inactive', 'delivered'])->default('active')->after('price');
         });
 
         // Update existing packages with orders that are completed
-        DB::statement("
-            UPDATE packages p 
-            INNER JOIN orders o ON p.id = o.package_id 
-            SET p.status = 'delivered' 
-            WHERE o.status = 'completed'
-        ");
+        if (Schema::hasTable('orders')) {
+            DB::statement("
+                UPDATE packages p
+                INNER JOIN orders o ON p.id = o.package_id
+                SET p.status = 'delivered'
+                WHERE o.status = 'completed'
+            ");
+        }
     }
 
     /**

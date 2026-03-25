@@ -13,9 +13,16 @@ class CreatePaymentsTable extends Migration
      */
     public function up()
     {
+        // If the table already exists (partial previous migration), don't fail again.
+        if (Schema::hasTable('payments')) {
+            return;
+        }
+
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('package_id')->nullable()->constrained('packages')->onDelete('cascade');
+            // Tradezell MVP: we don't require legacy `packages` table yet.
+            // Keep the column but remove the FK constraint to avoid migration ordering failures.
+            $table->unsignedBigInteger('package_id')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('stripe_payment_intent_id')->unique();
             $table->string('stripe_payment_method_id')->nullable();
