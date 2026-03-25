@@ -28,7 +28,7 @@ class UsersTableSeeder extends Seeder
                 'password' => $password,
                 'status' => 'active',
                 'is_verified' => true,
-                'settings' => json_encode(['account_role' => 'trader']),
+                'settings' => json_encode(['account_role' => 'admin']),
             ]
         );
 
@@ -43,5 +43,24 @@ class UsersTableSeeder extends Seeder
                 'settings' => json_encode(['account_role' => 'trader']),
             ]
         );
+
+        // Sample demo users (used by TradezellSampleDataSeeder).
+        $sampleRoles = ['trader', 'seller', 'buyer'];
+        for ($i = 1; $i <= 8; $i++) {
+            $email = "sample{$i}@tradezell.com";
+            $accountRole = $sampleRoles[($i - 1) % count($sampleRoles)];
+
+            \App\User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'first_name' => "Sample{$i}",
+                    'last_name' => 'User',
+                    'password' => $password,
+                    'status' => 'active',
+                    'is_verified' => true,
+                    'settings' => json_encode(['account_role' => $accountRole]),
+                ]
+            );
+        }
     }
 }

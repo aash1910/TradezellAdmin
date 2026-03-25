@@ -39,13 +39,10 @@ class UserCrudController extends BackpackUserCrudController
                 'label' => trans('backpack::permissionmanager.email'),
                 'type'  => 'email',
             ],
-            [ 
-                'label'     => trans('backpack::permissionmanager.roles'),
-                'type'      => 'select_multiple',
-                'name'      => 'roles',
-                'entity'    => 'roles',
-                'attribute' => 'name',
-                'model'     => config('permission.models.role'),
+            [
+                'name'  => 'account_role',
+                'label' => 'Account Role',
+                'type'  => 'text',
             ],
             [
                 'name'  => 'is_verified',
@@ -89,15 +86,22 @@ class UserCrudController extends BackpackUserCrudController
         // Role Filter
         $this->crud->addFilter(
             [
-                'name'  => 'role',
+                'name'  => 'account_role',
                 'type'  => 'dropdown',
-                'label' => trans('backpack::permissionmanager.role'),
+                'label' => 'Account Role',
             ],
-            $roles->toArray(),
+            [
+                'trader' => 'Trader',
+                'seller' => 'Seller',
+                'buyer'  => 'Buyer',
+            ],
             function ($value) {
-                $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
-                    $query->where('role_id', '=', $value);
-                });
+                // `settings` is stored as JSON in `users.settings`
+                $this->crud->addClause(
+                    'whereRaw',
+                    'JSON_UNQUOTE(JSON_EXTRACT(settings, \'$.account_role\')) = ?',
+                    [$value]
+                );
             }
         );
 

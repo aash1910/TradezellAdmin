@@ -61,6 +61,26 @@ class User extends Authenticatable
         return "{$this->first_name} {$this->last_name}";
     }
 
+    /**
+     * Tradezell user type (trader|seller|buyer) stored inside `users.settings`.
+     * This is an accessor so Backpack can display it without understanding JSON.
+     */
+    public function getAccountRoleAttribute(): ?string
+    {
+        $settings = $this->settings;
+
+        if (is_string($settings)) {
+            $decoded = json_decode($settings, true);
+            $settings = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($settings)) {
+            return null;
+        }
+
+        return $settings['account_role'] ?? null;
+    }
+
     public function save(array $options = [])
     {
         if (app('env') == 'production' &&
