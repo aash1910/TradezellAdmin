@@ -13,17 +13,35 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        \App\Models\User::insert([
+        // TradezellAdmin uses a customized users table:
+        // - no `name` column anymore (split into first_name/last_name)
+        // - has `status`, `is_verified`, and JSON `settings`
+        // Seed in an idempotent way so re-running doesn't create duplicates.
+
+        $password = \Hash::make('123456');
+
+        \App\User::updateOrCreate(
+            ['email' => 'admin@tradezell.com'],
             [
-                'name' => 'Admin',
-                'email' => 'admin@piqdrop.com',
-                'password' => \Hash::make('123456'),
-            ],
+                'first_name' => 'Admin',
+                'last_name' => 'Tradezell',
+                'password' => $password,
+                'status' => 'active',
+                'is_verified' => true,
+                'settings' => json_encode(['account_role' => 'trader']),
+            ]
+        );
+
+        \App\User::updateOrCreate(
+            ['email' => 'ashraful@tradezell.com'],
             [
-                'name' => 'Ashraful',
-                'email' => 'ashraful@piqdrop.com',
-                'password' => \Hash::make('123456'), 
-            ],
-        ]);
+                'first_name' => 'Ashraful',
+                'last_name' => 'Islam',
+                'password' => $password,
+                'status' => 'active',
+                'is_verified' => true,
+                'settings' => json_encode(['account_role' => 'trader']),
+            ]
+        );
     }
 }

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 
 class TradezellMatch extends Model
 {
+    use CrudTrait;
     protected $table = 'matches';
 
     protected $fillable = [

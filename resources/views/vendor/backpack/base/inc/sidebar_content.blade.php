@@ -1,6 +1,7 @@
 <li class="nav-item"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="nav-icon la la-dashboard"></i> <span>{{ trans('backpack::base.dashboard') }}</span></a></li>
-<li class='nav-item'><a class='nav-link' href="{{ backpack_url('package') }}"><i class='nav-icon la la-truck'></i> Packages</a></li>
-<li class='nav-item'><a class='nav-link' href='{{ backpack_url('order') }}'><i class='nav-icon la la-shopping-cart'></i> Orders</a></li>
+<li class='nav-item'><a class='nav-link' href="{{ backpack_url('listing') }}"><i class='nav-icon la la-box'></i> Listings</a></li>
+<li class='nav-item'><a class='nav-link' href="{{ backpack_url('match') }}"><i class='nav-icon la la-heart'></i> Matches</a></li>
+<li class='nav-item'><a class='nav-link' href="{{ backpack_url('report') }}"><i class='nav-icon la la-flag'></i> Reports</a></li>
 <li class='nav-item'><a class='nav-link' href='{{ backpack_url('review') }}'><i class='nav-icon la la-star'></i> Reviews</a></li>
 <li class='nav-item'><a class='nav-link' href='{{ backpack_url('faq') }}'><i class='nav-icon la la-question-circle'></i> Faqs</a></li>
 

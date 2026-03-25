@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 
 class Listing extends Model
 {
     use SoftDeletes;
+    use CrudTrait;
 
     protected $fillable = [
         'user_id',
