@@ -108,7 +108,7 @@ return [
     'developer_name' => 'Tradezell Ltd',
 
     // Developer website. Link in footer. Type false if you want to hide it.
-    'developer_link' => 'https://admintradezell.piqdrop.com',
+    'developer_link' => 'https://admin.tradezell.com',
 
     // Show powered by Laravel Backpack in the footer? true/false
     'show_powered_by' => false,
