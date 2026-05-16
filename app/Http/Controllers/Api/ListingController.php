@@ -87,7 +87,6 @@ class ListingController extends Controller
     public function myListings(Request $request)
     {
         $listings = Listing::where('user_id', $request->user()->id)
-            ->withTrashed()
             ->orderByDesc('created_at')
             ->get();
 
