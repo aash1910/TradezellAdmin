@@ -72,6 +72,9 @@ class ListingController extends Controller
         }
 
         $listings = $query->orderByDesc('created_at')->paginate(20);
+        $listings->setCollection(
+            $listings->getCollection()->map(fn (Listing $listing) => $this->listingForApi($listing))
+        );
 
         return response()->json([
             'status'   => 'success',
@@ -90,7 +93,7 @@ class ListingController extends Controller
 
         return response()->json([
             'status'   => 'success',
-            'listings' => $listings,
+            'listings' => $listings->map(fn (Listing $listing) => $this->listingForApi($listing)),
         ]);
     }
 
@@ -102,7 +105,7 @@ class ListingController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'listing' => $listing,
+            'listing' => $this->listingForApi($listing),
         ]);
     }
 
@@ -141,7 +144,7 @@ class ListingController extends Controller
             'category'    => $request->category,
             'price'       => ($request->type === 'trade') ? null : $request->price,
             'currency'    => $request->currency ?? 'USD',
-            'images'      => $request->images ?? [],
+            'images'      => Listing::processImagesForStorage($request->images ?? []),
             'lat'         => $request->lat,
             'lng'         => $request->lng,
             'status'      => 'active',
@@ -150,7 +153,7 @@ class ListingController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Listing created successfully',
-            'listing' => $listing,
+            'listing' => $this->listingForApi($listing),
         ], 201);
     }
 
@@ -182,15 +185,26 @@ class ListingController extends Controller
             ], 422);
         }
 
-        $listing->update($request->only([
+        $data = $request->only([
             'type', 'title', 'description', 'condition', 'category',
-            'price', 'currency', 'images', 'lat', 'lng',
-        ]));
+            'price', 'currency', 'lat', 'lng',
+        ]);
+
+        if ($request->has('images')) {
+            $existingImages = $listing->images ?? [];
+            $newImages = Listing::processImagesForStorage($request->images ?? []);
+            $removedImages = array_diff($existingImages, $newImages);
+
+            Listing::deleteStoredImages($removedImages);
+            $data['images'] = $newImages;
+        }
+
+        $listing->update($data);
 
         return response()->json([
             'status'  => 'success',
             'message' => 'Listing updated successfully',
-            'listing' => $listing->fresh(),
+            'listing' => $this->listingForApi($listing->fresh()),
         ]);
     }
 
@@ -219,7 +233,7 @@ class ListingController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Listing status updated',
-            'listing' => $listing,
+            'listing' => $this->listingForApi($listing),
         ]);
     }
 
@@ -302,6 +316,13 @@ class ListingController extends Controller
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function listingForApi(Listing $listing): Listing
+    {
+        $listing->setAttribute('images', $listing->getPublicImageUrls());
+
+        return $listing;
+    }
 
     private function getUserSettings(User $user): array
     {

@@ -38,8 +38,6 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users')->ignore($id)
             ],
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,id',
             'status' => 'required|in:active,inactive,pending',
         ];
 

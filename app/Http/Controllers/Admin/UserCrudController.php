@@ -12,12 +12,6 @@ class UserCrudController extends BackpackUserCrudController
     
     public function setupListOperation()
     {
-        // Fix the type error by converting to collection first
-        $roleModel = app(config('permission.models.role'));
-        $permissionModel = app(config('permission.models.permission'));
-        $roles = collect($roleModel->all())->pluck('name', 'id');
-        $permissions = collect($permissionModel->all())->pluck('name', 'id');
-
         $this->crud->addColumns([
             [
                 'name'  => 'first_name',
@@ -196,38 +190,6 @@ class UserCrudController extends BackpackUserCrudController
                 ->upload(true)
                 ->disk('public')
                 ->size(3);
-
-        $this->crud->addField([
-            'name'              => ['roles', 'permissions'],
-            'label'             => trans('backpack::permissionmanager.user_role_permission'),
-            'field_unique_name' => 'user_role_permission',
-            'type'              => 'checklist_dependency',
-            'subfields'         => [
-                'primary' => [
-                    'label'            => trans('backpack::permissionmanager.roles'),
-                    'name'             => 'roles',
-                    'entity'           => 'roles',
-                    'entity_secondary' => 'permissions',
-                    'attribute'        => 'name',
-                    'model'            => config('permission.models.role'),
-                    'pivot'            => true,
-                    'number_columns'   => 3,
-                ],
-                'secondary' => [
-                    'label'          => ucfirst(trans('backpack::permissionmanager.permission_singular')),
-                    'name'           => 'permissions',
-                    'entity'         => 'permissions',
-                    'entity_primary' => 'roles',
-                    'attribute'      => 'name',
-                    'model'          => config('permission.models.permission'),
-                    'pivot'          => true,
-                    'number_columns' => 3,
-                ],
-            ],
-            'wrapper' => [
-                'class' => 'col-md-6',
-            ],
-        ]);
 
         $this->crud->field('otp')
                 ->type('hidden');
