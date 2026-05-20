@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
-use App\Notifications\SendOtpNotification;
+use App\Services\OtpDeliveryService;
 use Illuminate\Support\Facades\Log;
 
 class OtpController extends Controller
 {
+    private const OTP_EXPIRY_MINUTES = 10;
+
+    private const RESEND_COOLDOWN_SECONDS = 60;
+
+    public function __construct(private OtpDeliveryService $otpDelivery)
+    {
+    }
+
     public function verify(Request $request)
     {
         try {
@@ -58,21 +66,28 @@ class OtpController extends Controller
                 return response()->json(['message' => 'User already verified'], 200);
             }
 
-            if ($user->otp_expires_at && now()->lessThan($user->otp_expires_at)) {
-                $remainingSeconds = now()->diffInSeconds($user->otp_expires_at);
-                return response()->json([
-                    'error' => "Please wait {$remainingSeconds} seconds before requesting a new OTP"
-                ], 429);
+            if ($user->otp && $user->updated_at) {
+                $secondsSinceLastOtp = $user->updated_at->diffInSeconds(now());
+                if ($secondsSinceLastOtp < self::RESEND_COOLDOWN_SECONDS) {
+                    $remainingSeconds = self::RESEND_COOLDOWN_SECONDS - $secondsSinceLastOtp;
+                    return response()->json([
+                        'error' => "Please wait {$remainingSeconds} seconds before requesting a new OTP",
+                    ], 429);
+                }
             }
 
             $otp = rand(1000, 9999);
 
             $user->update([
                 'otp' => $otp,
-                'otp_expires_at' => now()->addMinutes(1),
+                'otp_expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
             ]);
 
-            $user->notify(new SendOtpNotification($otp));
+            if (! $this->otpDelivery->send($user, $otp)) {
+                return response()->json([
+                    'error' => 'OTP updated but email could not be sent. Check mail configuration or try again later.',
+                ], 503);
+            }
 
             return response()->json(['message' => 'OTP resent successfully']);
         } catch (\Exception $e) {

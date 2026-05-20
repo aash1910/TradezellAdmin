@@ -8,6 +8,12 @@ use App\Constants\Countries;
 
 class UserCrudController extends BackpackUserCrudController
 {
+    private const ACCOUNT_ROLE_OPTIONS = [
+        'trader' => 'Trader',
+        'seller' => 'Seller',
+        'buyer'  => 'Buyer',
+    ];
+
     // Override any methods you want to customize here
     
     public function setupListOperation()
@@ -36,7 +42,8 @@ class UserCrudController extends BackpackUserCrudController
             [
                 'name'  => 'account_role',
                 'label' => 'Account Role',
-                'type'  => 'text',
+                'type'  => 'select_from_array',
+                'options' => self::ACCOUNT_ROLE_OPTIONS,
             ],
             [
                 'name'  => 'is_verified',
@@ -84,11 +91,7 @@ class UserCrudController extends BackpackUserCrudController
                 'type'  => 'dropdown',
                 'label' => 'Account Role',
             ],
-            [
-                'trader' => 'Trader',
-                'seller' => 'Seller',
-                'buyer'  => 'Buyer',
-            ],
+            self::ACCOUNT_ROLE_OPTIONS,
             function ($value) {
                 // `settings` is stored as JSON in `users.settings`
                 $this->crud->addClause(
@@ -189,6 +192,14 @@ class UserCrudController extends BackpackUserCrudController
                 ->label('Document')
                 ->upload(true)
                 ->disk('public')
+                ->size(3);
+
+        $this->crud->field('account_role')
+                ->type('select2_from_array')
+                ->label('Account Role')
+                ->options(self::ACCOUNT_ROLE_OPTIONS)
+                ->allows_null(true)
+                ->placeholder('-')
                 ->size(3);
 
         $this->crud->field('otp')

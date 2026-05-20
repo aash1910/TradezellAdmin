@@ -9,10 +9,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
-use App\Notifications\SendOtpNotification;
+use App\Services\OtpDeliveryService;
 
 class RegisterController extends Controller
 {
+    public function __construct(private OtpDeliveryService $otpDelivery)
+    {
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -76,17 +80,20 @@ class RegisterController extends Controller
             'is_verified'    => false,
         ]);
 
-        $user->notify(new SendOtpNotification($otp));
+        $otpSent = $this->otpDelivery->send($user, $otp);
 
         return response()->json([
             'status'  => 'success',
             'message' => 'User registered successfully',
             'data'    => [
-                'user'                 => $user,
-                'account_role'         => $accountRole,
-                'token'                => $token,
+                'user'                  => $user,
+                'account_role'          => $accountRole,
+                'token'                 => $token,
                 'requires_verification' => true,
-                'message'              => 'Please verify your account using the OTP sent to your email',
+                'otp_sent'              => $otpSent,
+                'message'               => $otpSent
+                    ? 'Please verify your account using the OTP sent to your email'
+                    : 'Account created. We could not send the verification email; use resend OTP or fix mail settings.',
             ]
         ], 201);
     }

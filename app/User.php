@@ -28,7 +28,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'status', 'image', 'document', 'address', 'latitude', 'longitude', 'date_of_birth', 'gender', 'nationality', 'mobile', 'otp', 'is_verified', 'otp_expires_at', 'settings', 'role', 'facebook_id', 'apple_id', 'stripe_account_id'
+        'first_name', 'last_name', 'email', 'password', 'status', 'image', 'document', 'address', 'latitude', 'longitude', 'date_of_birth', 'gender', 'nationality', 'mobile', 'otp', 'is_verified', 'otp_expires_at', 'settings', 'account_role', 'role', 'facebook_id', 'apple_id', 'stripe_account_id'
     ];
 
     /*
@@ -67,18 +67,33 @@ class User extends Authenticatable
      */
     public function getAccountRoleAttribute(): ?string
     {
-        $settings = $this->settings;
+        return $this->getSettingsArray()['account_role'] ?? null;
+    }
+
+    public function setAccountRoleAttribute(?string $value): void
+    {
+        $settings = $this->getSettingsArray();
+        if ($value === null || $value === '') {
+            unset($settings['account_role']);
+        } else {
+            $settings['account_role'] = $value;
+        }
+        $this->attributes['settings'] = empty($settings)
+            ? null
+            : json_encode($settings);
+    }
+
+    protected function getSettingsArray(): array
+    {
+        $settings = $this->attributes['settings'] ?? $this->settings ?? null;
 
         if (is_string($settings)) {
             $decoded = json_decode($settings, true);
-            $settings = is_array($decoded) ? $decoded : [];
+
+            return is_array($decoded) ? $decoded : [];
         }
 
-        if (!is_array($settings)) {
-            return null;
-        }
-
-        return $settings['account_role'] ?? null;
+        return is_array($settings) ? $settings : [];
     }
 
     public function save(array $options = [])

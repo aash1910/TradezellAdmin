@@ -39,6 +39,7 @@ class UserRequest extends FormRequest
                 Rule::unique('users')->ignore($id)
             ],
             'status' => 'required|in:active,inactive,pending',
+            'account_role' => 'nullable|string|in:trader,seller,buyer',
         ];
 
         // Only require password for new users

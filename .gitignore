@@ -4,6 +4,8 @@
 /public/assets/video
 /storage/backups
 /public/uploads/images/
+/public/uploads/documents/
+/public/uploads/listings/
 Homestead.yaml
 Homestead.json
 .env 

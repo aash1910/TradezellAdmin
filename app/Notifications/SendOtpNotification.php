@@ -27,7 +27,7 @@ class SendOtpNotification extends Notification
             ->subject('Your OTP Code')
             ->greeting('Hello ' . $notifiable->first_name . ' ' . $notifiable->last_name . ',')
             ->line('Your One-Time Password (OTP) is: **' . $this->otp . '**')
-            ->line('This OTP will expire in 1 minutes.')
+            ->line('This OTP will expire in 10 minutes.')
             ->line('If you did not request this, please ignore this email.');
     }
 }
