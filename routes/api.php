@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Listings ────────────────────────────────────────────────────────────
     Route::get('/listings/feed',        [ListingController::class, 'feed']);
     Route::get('/listings/my',          [ListingController::class, 'myListings']);
+    Route::get('/listings/liked',       [ListingController::class, 'liked']);
     Route::get('/listings/{id}',        [ListingController::class, 'show']);
     Route::post('/listings',            [ListingController::class, 'store']);
     Route::put('/listings/{id}',        [ListingController::class, 'update']);
@@ -92,7 +93,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/listings/{id}/status', [ListingController::class, 'updateStatus']);
 
     // Swipe on a listing
-    Route::post('/listings/{id}/swipe', [ListingController::class, 'swipe']);
+    Route::post('/listings/{id}/swipe',  [ListingController::class, 'swipe']);
+    Route::delete('/listings/{id}/like', [ListingController::class, 'unlike']);
 
     // ── Matches ─────────────────────────────────────────────────────────────
     Route::get('/matches',              [MatchController::class, 'index']);

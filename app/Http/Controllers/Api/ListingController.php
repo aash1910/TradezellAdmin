@@ -96,6 +96,46 @@ class ListingController extends Controller
         ]);
     }
 
+    /**
+     * GET /listings/liked
+     * Yes-swipes on others' listings where there is no active match with the owner yet.
+     */
+    public function liked(Request $request)
+    {
+        $user = $request->user();
+        $matchedOwnerIds = $this->getMatchedUserIds($user->id);
+
+        $swipes = ListingSwipe::where('user_id', $user->id)
+            ->where('direction', 'yes')
+            ->when(count($matchedOwnerIds) > 0, fn ($q) => $q->whereNotIn('owner_id', $matchedOwnerIds))
+            ->orderByDesc('created_at')
+            ->get();
+
+        $listingIds = $swipes->pluck('listing_id')->unique()->values()->all();
+        $listingsById = Listing::with('user:id,first_name,last_name,image')
+            ->whereIn('id', $listingIds)
+            ->whereIn('status', ['active', 'paused'])
+            ->get()
+            ->keyBy('id');
+
+        $liked = $swipes
+            ->filter(fn (ListingSwipe $swipe) => $listingsById->has($swipe->listing_id))
+            ->map(function (ListingSwipe $swipe) use ($listingsById) {
+                $listing = $listingsById->get($swipe->listing_id);
+
+                return [
+                    'liked_at' => $swipe->created_at,
+                    'listing'  => $this->listingForApi($listing),
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'status' => 'success',
+            'liked'  => $liked,
+        ]);
+    }
+
     // ── Single listing ────────────────────────────────────────────────────────
 
     public function show(Request $request, $id)
@@ -257,11 +297,18 @@ class ListingController extends Controller
 
         $owner = $listing->user;
 
+        $priorSwipe = ListingSwipe::where('user_id', $swiper->id)
+            ->where('listing_id', $listing->id)
+            ->first();
+
         // Record the swipe (upsert so retries are idempotent)
         ListingSwipe::updateOrCreate(
             ['user_id' => $swiper->id, 'listing_id' => $listing->id],
             ['direction' => $request->direction, 'owner_id' => $owner->id]
         );
+
+        $isNewYes = $request->direction === 'yes'
+            && (!$priorSwipe || $priorSwipe->direction !== 'yes');
 
         if ($request->direction === 'no') {
             return response()->json(['status' => 'success', 'matched' => false]);
@@ -289,6 +336,10 @@ class ListingController extends Controller
             ->exists();
 
         if (!$ownerLikedSwiper) {
+            if ($isNewYes) {
+                $this->createLikeNotification($owner->id, $swiper, $listing);
+            }
+
             return response()->json(['status' => 'success', 'matched' => false]);
         }
 
@@ -314,6 +365,30 @@ class ListingController extends Controller
         ]);
     }
 
+    /**
+     * DELETE /listings/{id}/like
+     * Remove a yes-swipe so the listing can appear in the feed again.
+     */
+    public function unlike(Request $request, $id)
+    {
+        $deleted = ListingSwipe::where('user_id', $request->user()->id)
+            ->where('listing_id', $id)
+            ->where('direction', 'yes')
+            ->delete();
+
+        if (!$deleted) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Like not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Like removed',
+        ]);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function listingForApi(Listing $listing): Listing
@@ -333,6 +408,20 @@ class ListingController extends Controller
             : json_decode($user->settings, true);
 
         return $settings ?? [];
+    }
+
+    /** @return int[] */
+    private function getMatchedUserIds(int $userId): array
+    {
+        return TradezellMatch::where('status', 'active')
+            ->where(function ($q) use ($userId) {
+                $q->where('user_one_id', $userId)->orWhere('user_two_id', $userId);
+            })
+            ->get()
+            ->map(fn (TradezellMatch $m) => $m->user_one_id === $userId ? $m->user_two_id : $m->user_one_id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function formatMatch(TradezellMatch $match, int $currentUserId): array
@@ -372,6 +461,29 @@ class ListingController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to create match notification: ' . $e->getMessage());
+        }
+    }
+
+    private function createLikeNotification(int $ownerId, User $swiper, Listing $listing): void
+    {
+        try {
+            $name = trim("{$swiper->first_name} {$swiper->last_name}") ?: 'Someone';
+
+            DB::table('notifications')->insert([
+                'user_id'     => $ownerId,
+                'title'       => "{$name} liked your listing",
+                'description' => "\"{$listing->title}\" — like one of their listings back to match!",
+                'type'        => 'like',
+                'data'        => json_encode([
+                    'listing_id' => $listing->id,
+                    'swiper_id'  => $swiper->id,
+                ]),
+                'is_read'     => false,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create like notification: ' . $e->getMessage());
         }
     }
 }
