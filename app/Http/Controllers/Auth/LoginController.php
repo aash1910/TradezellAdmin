@@ -134,7 +134,7 @@ class LoginController extends Controller
                     'password'   => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
                     'is_verified' => 1,
                     'status'     => 'active',
-                    'settings'   => json_encode(['account_role' => $accountRole]),
+                    'settings'   => json_encode(User::defaultSettingsForNewUser($accountRole)),
                 ];
 
                 if ($image) {
@@ -269,7 +269,7 @@ class LoginController extends Controller
                         'apple_id'    => $appleUserId,
                         'is_verified' => 1,
                         'status'      => 'active',
-                        'settings'    => json_encode(['account_role' => $accountRole]),
+                        'settings'    => json_encode(User::defaultSettingsForNewUser($accountRole)),
                     ];
 
                     $user = User::create($userData);

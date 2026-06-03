@@ -60,7 +60,7 @@ class RegisterController extends Controller
                 : null,
             'mobile'  => $mobile,
             'status'  => 'active',
-            'settings' => json_encode(['account_role' => $accountRole]),
+            'settings' => json_encode(User::defaultSettingsForNewUser($accountRole)),
         ]);
 
         // Assign default Spatie role for permission management

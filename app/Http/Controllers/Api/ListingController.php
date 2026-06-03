@@ -59,9 +59,9 @@ class ListingController extends Controller
         $radiusKm = $request->filled('radius_km') ? (int) $request->radius_km : 250;
 
         if ($lat !== null && $lng !== null) {
-            // Check if global_search is OFF (default to respecting radius)
+            // global_search defaults on for new users (see User::defaultSettingsForNewUser)
             $settings = $this->getUserSettings($user);
-            $globalSearch = $settings['global_search'] ?? false;
+            $globalSearch = $settings['global_search'] ?? true;
 
             if (!$globalSearch) {
                 $query->whereRaw(
@@ -311,7 +311,33 @@ class ListingController extends Controller
             && (!$priorSwipe || $priorSwipe->direction !== 'yes');
 
         if ($request->direction === 'no') {
-            return response()->json(['status' => 'success', 'matched' => false]);
+            $unmatched = false;
+            $activeMatch = TradezellMatch::where('status', 'active')
+                ->where(function ($q) use ($swiper, $owner) {
+                    $q->where(function ($inner) use ($swiper, $owner) {
+                        $inner->where('user_one_id', $swiper->id)->where('user_two_id', $owner->id);
+                    })->orWhere(function ($inner) use ($swiper, $owner) {
+                        $inner->where('user_one_id', $owner->id)->where('user_two_id', $swiper->id);
+                    });
+                })
+                ->first();
+
+            if ($activeMatch) {
+                $activeMatch->update([
+                    'status'       => 'unmatched',
+                    'unmatched_at' => now(),
+                ]);
+                $unmatched = true;
+            }
+
+            $removedLike = $priorSwipe && $priorSwipe->direction === 'yes';
+
+            return response()->json([
+                'status'       => 'success',
+                'matched'      => false,
+                'unmatched'    => $unmatched,
+                'removed_like' => $removedLike,
+            ]);
         }
 
         // Check for mutual match: has the owner already swiped yes on ANY of swiper's listings?

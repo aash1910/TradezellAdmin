@@ -83,6 +83,18 @@ class User extends Authenticatable
             : json_encode($settings);
     }
 
+    /**
+     * Default JSON settings for newly registered users (email, Google, Apple).
+     */
+    public static function defaultSettingsForNewUser(string $accountRole = 'trader'): array
+    {
+        return [
+            'account_role'     => $accountRole,
+            'global_search'    => true,
+            'enable_discovery' => true,
+        ];
+    }
+
     protected function getSettingsArray(): array
     {
         $settings = $this->attributes['settings'] ?? $this->settings ?? null;
