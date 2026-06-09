@@ -23,21 +23,10 @@ class Cors
             return self::$allowedOrigins;
         }
 
-        $base = [
-            'http://localhost:8081',
-            'http://localhost:8082',
-            'http://127.0.0.1:8081',
-            'http://127.0.0.1:8082',
-            'http://localhost:19006',
-            'http://127.0.0.1:19006',
-            'https://tradezell.com',
-            'https://www.tradezell.com',
-            'https://app.tradezell.com',
-        ];
-
+        $fromConfig = config('cors.allowed_origins', []);
         $fromEnv = config('cors.env_extra_origins', []);
 
-        self::$allowedOrigins = array_values(array_unique(array_merge($base, $fromEnv)));
+        self::$allowedOrigins = array_values(array_unique(array_merge($fromConfig, $fromEnv)));
 
         return self::$allowedOrigins;
     }
