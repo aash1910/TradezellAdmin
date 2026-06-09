@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\MomoPaymentController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Auth\PhoneAuthController;
+use App\Http\Controllers\Auth\PhoneLookupController;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -56,7 +57,7 @@ Route::post('/process-pending-deletions', [PrivacyController::class, 'processPen
 // Phone Login (Twilio OTP)
 Route::post('/phone-login', [PhoneAuthController::class, 'login']);
 Route::post('/verify-phone-otp', [PhoneAuthController::class, 'verifyOtp']);
-Route::post('/check-phone-exists', [PhoneAuthController::class, 'checkPhoneExists']);
+Route::post('/check-phone-exists', [PhoneLookupController::class, 'checkPhoneExists']);
 
 // Social login
 Route::post('/google-login', [LoginController::class, 'googleLogin']);

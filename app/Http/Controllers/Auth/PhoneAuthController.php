@@ -15,27 +15,24 @@ use Twilio\Exceptions\RestException;
 
 class PhoneAuthController extends Controller
 {
-    protected $twilioClient;
+    protected ?Client $twilioClient = null;
 
-    public function __construct()
+    protected function twilioClient(): Client
     {
-        try {
-            // Log Twilio configuration
-            Log::info('Twilio Configuration:', [
-                'sid' => config('services.twilio.sid'),
-                'auth_token_exists' => !empty(config('services.twilio.auth_token')),
-                'verify_service_sid' => config('services.twilio.verify_service_sid')
-            ]);
-
-            // Initialize Twilio client
-            $this->twilioClient = new Client(
-                config('services.twilio.sid'),
-                config('services.twilio.auth_token')
-            );
-        } catch (ConfigurationException $e) {
-            Log::error('Twilio Configuration Error: ' . $e->getMessage());
-            throw $e;
+        if ($this->twilioClient !== null) {
+            return $this->twilioClient;
         }
+
+        $sid = config('services.twilio.sid');
+        $authToken = config('services.twilio.auth_token');
+
+        if (empty($sid) || empty($authToken)) {
+            throw new ConfigurationException('Twilio credentials are not configured.');
+        }
+
+        $this->twilioClient = new Client($sid, $authToken);
+
+        return $this->twilioClient;
     }
 
     public function login(Request $request)
@@ -94,7 +91,7 @@ class PhoneAuthController extends Controller
                 }
 
                 // Use the exact endpoint format you provided
-                $verification = $this->twilioClient->verify->v2->services($verifyServiceSid)
+                $verification = $this->twilioClient()->verify->v2->services($verifyServiceSid)
                     ->verifications
                     ->create($mobile, "sms");
 
@@ -201,7 +198,7 @@ class PhoneAuthController extends Controller
                 ]);
 
                 // Use the correct endpoint for verification check
-                $verificationCheck = $this->twilioClient->verify->v2->services($verifyServiceSid)
+                $verificationCheck = $this->twilioClient()->verify->v2->services($verifyServiceSid)
                     ->verificationChecks
                     ->create([
                         'to' => $mobile,
@@ -254,47 +251,4 @@ class PhoneAuthController extends Controller
         }
     }
 
-    public function checkPhoneExists(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'phone' => 'required|string|regex:/^\+?[1-9]\d{1,14}$/'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()->first()
-                ], 422);
-            }
-
-            // Clean phone number (remove spaces and ensure it starts with +)
-            $mobile = preg_replace('/\s+/', '', $request->phone);
-            if (!str_starts_with($mobile, '+')) {
-                $mobile = '+' . $mobile;
-            }
-
-            Log::info('Checking phone existence:', [
-                'original_phone' => $request->phone,
-                'formatted_phone' => $mobile
-            ]);
-
-            // Check if user exists with this phone number
-            $user = User::where('mobile', $mobile)->first();
-            
-            return response()->json([
-                'exists' => $user ? true : false,
-                'phone' => $mobile
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Check Phone Exists Error:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'error' => 'An error occurred while checking phone number.',
-                'exists' => false
-            ], 500);
-        }
-    }
 } 
