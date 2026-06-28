@@ -50,7 +50,7 @@
                             <div class="message-content">
                                 <div class="message-bubble">
                                     <p class="mb-1">{{ $message->message }}</p>
-                                    <small class="text-muted">{{ $message->created_at->format('M j, g:i A') }}</small>
+                                    <small class="message-time">{{ $message->created_at->format('M j, g:i A') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -82,7 +82,7 @@
 <style>
 /* Header styling */
 .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #009444 0%, #006830 100%);
     color: white;
     border-radius: 12px 12px 0 0;
     padding: 32px 24px;
@@ -250,7 +250,7 @@
 }
 
 .message-admin .message-bubble {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #009444 0%, #007a37 100%);
     color: white;
     border-bottom-right-radius: 6px;
     margin-left: 20%;
@@ -272,12 +272,20 @@
     font-weight: 400;
 }
 
-.message-bubble small {
-    opacity: 0.8;
-    font-size: 0.75rem;
+.message-bubble .message-time {
+    font-size: 0.8rem;
     font-weight: 500;
     margin-top: 8px;
     display: block;
+    opacity: 1;
+}
+
+.message-admin .message-bubble .message-time {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.message-user .message-bubble .message-time {
+    color: #4a5568;
 }
 
 /* Message animations */
@@ -320,15 +328,15 @@
 }
 
 #message-input:focus {
-    border-color: #007bff;
+    border-color: #009444;
     box-shadow: 0 4px 16px rgba(0, 123, 255, 0.15);
     outline: none;
 }
 
 #send-button {
     border-radius: 0 25px 25px 0;
-    border: 2px solid #007bff;
-    background: #007bff;
+    border: 2px solid #009444;
+    background: #009444;
     color: white;
     padding: 12px 24px;
     font-weight: 600;
@@ -337,8 +345,8 @@
 }
 
 #send-button:hover {
-    background: #0056b3;
-    border-color: #0056b3;
+    background: #007a37;
+    border-color: #007a37;
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(0, 123, 255, 0.3);
 }
@@ -370,13 +378,13 @@
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(180deg, #009444 0%, #007a37 100%);
     border-radius: 4px;
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .messages-container::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #0056b3 0%, #004085 100%);
+    background: linear-gradient(180deg, #007a37 0%, #006830 100%);
 }
 
 /* Loading animation */
@@ -395,7 +403,7 @@
     height: 24px;
     margin: -12px 0 0 -12px;
     border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid #007bff;
+    border-top: 3px solid #009444;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
@@ -570,7 +578,7 @@ function addMessageToUI(messageData) {
             <div class="message-content">
                 <div class="message-bubble">
                     <p class="mb-1">${messageData.message}</p>
-                    <small class="text-muted">${formatTime(messageData.created_at)}</small>
+                    <small class="message-time">${formatTime(messageData.created_at)}</small>
                 </div>
             </div>
         </div>
@@ -610,7 +618,7 @@ function updateMessagesUI(messages) {
                     <div class="message-content">
                         <div class="message-bubble">
                             <p class="mb-1">${message.message}</p>
-                            <small class="text-muted">${formatTime(message.created_at)}</small>
+                            <small class="message-time">${formatTime(message.created_at)}</small>
                         </div>
                     </div>
                 </div>

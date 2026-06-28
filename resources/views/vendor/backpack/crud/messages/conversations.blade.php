@@ -67,7 +67,7 @@
 <style>
 /* Page-level styling */
 .page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #009444 0%, #006830 100%);
     color: white;
     padding: 30px 0;
     margin-bottom: 30px;
@@ -119,7 +119,7 @@
 .stat-number {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #007bff;
+    color: #009444;
     margin-bottom: 8px;
 }
 
@@ -148,7 +148,7 @@
 }
 
 .conversation-item:hover {
-    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+    background: linear-gradient(135deg, #f0faf4 0%, #e6f5ec 100%);
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
@@ -164,7 +164,7 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: linear-gradient(180deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(180deg, #009444 0%, #007a37 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -252,13 +252,13 @@
     border-radius: 20px;
     font-weight: 600;
     transition: all 0.3s ease;
-    border: 2px solid #007bff;
+    border: 2px solid #009444;
     background: transparent;
-    color: #007bff;
+    color: #009444;
 }
 
 .open-conversation:hover {
-    background: #007bff;
+    background: #009444;
     color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
@@ -285,7 +285,7 @@
 }
 
 .conversation-item img:not([src*="avatar.png"]) {
-    border-color: #007bff;
+    border-color: #009444;
     box-shadow: 0 4px 16px rgba(0, 123, 255, 0.2);
 }
 

@@ -1,0 +1,212 @@
+/**
+ * Tradezell Admin theme — green brand color (#009444)
+ * Loaded after Backpack bundle.css to override the default purple theme.
+ */
+:root {
+    --primary: #009444;
+    --purple: #009444;
+    --green: #009444;
+}
+
+/* Links */
+a,
+.btn-link,
+.page-link {
+    color: #009444;
+}
+
+a:hover,
+.btn-link:hover,
+.page-link:hover {
+    color: #006830;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-primary.disabled,
+.btn-primary:disabled {
+    background-color: #009444;
+    border-color: #009444;
+}
+
+.btn-primary:hover,
+.btn-primary:not(:disabled):not(.disabled).active,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show > .btn-primary.dropdown-toggle {
+    background-color: #007a37;
+    border-color: #007038;
+}
+
+.btn-primary:focus,
+.btn-primary.focus,
+.btn-primary:not(:disabled):not(.disabled):active:focus,
+.btn-primary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-primary.dropdown-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 148, 68, 0.5);
+}
+
+.btn-outline-primary {
+    color: #009444;
+    border-color: #009444;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:not(:disabled):not(.disabled).active,
+.btn-outline-primary:not(:disabled):not(.disabled):active,
+.show > .btn-outline-primary.dropdown-toggle {
+    background-color: #009444;
+    border-color: #009444;
+    color: #fff;
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary.focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active:focus,
+.btn-outline-primary:not(:disabled):not(.disabled).active:focus,
+.show > .btn-outline-primary.dropdown-toggle:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 148, 68, 0.5);
+}
+
+.btn-outline-primary.disabled,
+.btn-outline-primary:disabled {
+    color: #009444;
+}
+
+.btn-ghost-primary {
+    color: #009444;
+}
+
+.btn-ghost-primary:hover,
+.btn-ghost-primary:not(:disabled):not(.disabled).active,
+.btn-ghost-primary:not(:disabled):not(.disabled):active,
+.show > .btn-ghost-primary.dropdown-toggle {
+    background-color: #009444;
+    border-color: #009444;
+    color: #fff;
+}
+
+.btn-ghost-primary.disabled,
+.btn-ghost-primary:disabled {
+    color: #009444;
+}
+
+/* Form controls */
+.custom-control-input:checked ~ .custom-control-label::before,
+.custom-control-input:indeterminate ~ .custom-control-label::before {
+    background-color: #009444;
+    border-color: #009444;
+}
+
+.custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 0.2rem rgba(0, 148, 68, 0.25);
+}
+
+.custom-range::-webkit-slider-thumb,
+.custom-range::-moz-range-thumb,
+.custom-range::-ms-thumb {
+    background-color: #009444;
+}
+
+/* Navigation */
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: #009444;
+}
+
+.page-item.active .page-link {
+    background-color: #009444;
+    border-color: #009444;
+}
+
+/* Badges & alerts */
+.badge-primary {
+    background-color: #009444;
+}
+
+a.badge-primary:hover,
+a.badge-primary:focus {
+    background-color: #007a37;
+}
+
+.alert-primary {
+    background-color: #e6f5ec;
+    border-color: #b3dfc4;
+    color: #005e2b;
+}
+
+/* Progress & lists */
+.progress-bar {
+    background-color: #009444;
+}
+
+.list-group-item.active {
+    background-color: #009444;
+    border-color: #009444;
+}
+
+/* Utility classes */
+.bg-primary {
+    background-color: #009444 !important;
+}
+
+.border-primary {
+    border-color: #009444 !important;
+}
+
+.text-primary {
+    color: #009444 !important;
+}
+
+a.text-primary:hover,
+a.text-primary:focus {
+    color: #006830 !important;
+}
+
+/* Sidebar */
+.sidebar .nav-link.active .nav-icon {
+    color: #009444;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.nav-link-primary,
+.sidebar-minimized .sidebar .nav-item:hover > .nav-link,
+.sidebar-minimized .sidebar .nav-link:hover,
+.sidebar-minimized .sidebar .nav > .nav-dropdown:hover {
+    background: #009444;
+    color: #fff;
+}
+
+.sidebar.bg-white .nav-link.active {
+    color: #009444 !important;
+}
+
+.sidebar.bg-white .nav-link.active .nav-icon,
+.sidebar.bg-white .nav-link.active:hover .nav-icon {
+    color: #009444 !important;
+}
+
+.sidebar-pills .nav-link.active,
+.sidebar-pills .nav-link:hover,
+.sidebar-pills .nav-link:hover .nav-icon {
+    color: #009444 !important;
+}
+
+.sidebar.sidebar-pills .nav-link.active,
+.sidebar.sidebar-pills .nav-link:hover {
+    color: #009444 !important;
+}
+
+.sidebar.sidebar-pills .nav-link.active .nav-icon,
+.sidebar.sidebar-pills .nav-link:hover .nav-icon {
+    color: #009444;
+}
+
+.aside-menu .nav-tabs .nav-link.active {
+    color: #009444;
+}
+
+/* Notifications */
+.noty_theme__backstrap.noty_type__primary {
+    background-color: #009444;
+    border-color: #007a37;
+}

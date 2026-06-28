@@ -100,9 +100,9 @@
 
     .listing-upload-zone:hover,
     .listing-upload-zone:focus-within {
-        border-color: #467fd0;
-        background: #f0f5ff;
-        box-shadow: 0 0 0 3px rgba(70, 127, 208, 0.12);
+        border-color: #009444;
+        background: #f0faf4;
+        box-shadow: 0 0 0 3px rgba(0, 148, 68, 0.12);
     }
 
     .listing-upload-input {
@@ -135,8 +135,8 @@
         width: 52px;
         height: 52px;
         border-radius: 50%;
-        background: #e8eef8;
-        color: #467fd0;
+        background: #e6f5ec;
+        color: #009444;
         font-size: 26px;
         line-height: 1;
     }
@@ -153,14 +153,14 @@
     }
 
     .listing-upload-zone.is-dragover {
-        border-color: #467fd0;
-        background: #e8f0fe;
+        border-color: #009444;
+        background: #e6f5ec;
     }
 
     .listing-upload-zone.has-files {
         border-style: solid;
-        border-color: #9bb8e8;
-        background: #f0f5ff;
+        border-color: #b3dfc4;
+        background: #f0faf4;
     }
 
     .listing-new-files-preview {
@@ -183,7 +183,7 @@
     }
 
     .listing-new-file-item i {
-        color: #467fd0;
+        color: #009444;
         font-size: 18px;
     }
 

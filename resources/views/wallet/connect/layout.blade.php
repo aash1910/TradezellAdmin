@@ -13,7 +13,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #009444 0%, #006830 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -52,7 +52,7 @@
         
         .button {
             display: inline-block;
-            background: #667eea;
+            background: #009444;
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -62,7 +62,7 @@
         }
         
         .button:hover {
-            background: #5a67d8;
+            background: #007a37;
             transform: translateY(-1px);
         }
         
@@ -87,7 +87,7 @@
         .logo {
             font-size: 24px;
             font-weight: 700;
-            color: #667eea;
+            color: #009444;
             margin-bottom: 8px;
         }
     </style>
