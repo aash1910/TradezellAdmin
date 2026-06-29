@@ -341,21 +341,6 @@ class ListingController extends Controller
         }
 
         // Check for mutual match: has the owner already swiped yes on ANY of swiper's listings?
-        $existingMatch = TradezellMatch::where(function ($q) use ($swiper, $owner) {
-            $q->where('user_one_id', $swiper->id)->where('user_two_id', $owner->id);
-        })->orWhere(function ($q) use ($swiper, $owner) {
-            $q->where('user_one_id', $owner->id)->where('user_two_id', $swiper->id);
-        })->where('status', 'active')->first();
-
-        if ($existingMatch) {
-            // Match already exists
-            return response()->json([
-                'status'  => 'success',
-                'matched' => true,
-                'match'   => $this->formatMatch($existingMatch, $swiper->id),
-            ]);
-        }
-
         $ownerLikedSwiper = ListingSwipe::where('user_id', $owner->id)
             ->where('owner_id', $swiper->id)
             ->where('direction', 'yes')
@@ -369,20 +354,7 @@ class ListingController extends Controller
             return response()->json(['status' => 'success', 'matched' => false]);
         }
 
-        // Mutual interest — create match inside a transaction
-        $match = DB::transaction(function () use ($swiper, $owner) {
-            $newMatch = TradezellMatch::create([
-                'user_one_id' => min($swiper->id, $owner->id),
-                'user_two_id' => max($swiper->id, $owner->id),
-                'status'      => 'active',
-            ]);
-
-            // Notify both users via notifications table
-            $this->createMatchNotification($swiper->id, $owner->id, $newMatch->id);
-            $this->createMatchNotification($owner->id, $swiper->id, $newMatch->id);
-
-            return $newMatch;
-        });
+        $match = $this->findOrCreateMatch($swiper, $owner);
 
         return response()->json([
             'status'  => 'success',
@@ -448,6 +420,43 @@ class ListingController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function findOrCreateMatch(User $swiper, User $owner): TradezellMatch
+    {
+        $userOneId = min($swiper->id, $owner->id);
+        $userTwoId = max($swiper->id, $owner->id);
+
+        return DB::transaction(function () use ($swiper, $owner, $userOneId, $userTwoId) {
+            $existing = TradezellMatch::where('user_one_id', $userOneId)
+                ->where('user_two_id', $userTwoId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                if ($existing->status !== 'active') {
+                    $existing->update([
+                        'status'       => 'active',
+                        'unmatched_at' => null,
+                    ]);
+                    $this->createMatchNotification($swiper->id, $owner->id, $existing->id);
+                    $this->createMatchNotification($owner->id, $swiper->id, $existing->id);
+                }
+
+                return $existing;
+            }
+
+            $newMatch = TradezellMatch::create([
+                'user_one_id' => $userOneId,
+                'user_two_id' => $userTwoId,
+                'status'      => 'active',
+            ]);
+
+            $this->createMatchNotification($swiper->id, $owner->id, $newMatch->id);
+            $this->createMatchNotification($owner->id, $swiper->id, $newMatch->id);
+
+            return $newMatch;
+        });
     }
 
     private function formatMatch(TradezellMatch $match, int $currentUserId): array
