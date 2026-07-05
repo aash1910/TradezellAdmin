@@ -352,9 +352,10 @@
 
     <div class="section">
         <h2>📱 Download Tradezell</h2>
-        <p>Get the app on iOS:</p>
+        <p>Get the app on your device:</p>
         <ul>
             <li><a href="https://apps.apple.com/app/tradezell-buy-sell-trade/id6744620839" target="_blank" rel="noopener">Tradezell on the App Store</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.tradezell" target="_blank" rel="noopener">Tradezell on Google Play</a></li>
         </ul>
     </div>
 
