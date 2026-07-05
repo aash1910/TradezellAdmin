@@ -62,7 +62,7 @@ class PrivacyController extends Controller
                 [
                     'method' => 'Email Request',
                     'description' => 'Send an email to our support team with your deletion request.',
-                    'email' => 'support@piqdrop.com',
+                    'email' => 'support@tradezell.com',
                     'subject' => 'Data Deletion Request'
                 ],
                 [
@@ -77,7 +77,7 @@ class PrivacyController extends Controller
             ],
             'note' => 'Legal retention data may be retained only as required by law.',
             'contact' => [
-                'email' => 'support@piqdrop.com',
+                'email' => 'support@tradezell.com',
                 'privacy_policy' => config('app.url') . '/privacy-policy'
             ]
         ]);
